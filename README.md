@@ -1,4 +1,5 @@
 # wasm-ludo
+School project built in **WASM**. Frontend is built in **yew** and server in **actix**.
 
 ## Client 
 
