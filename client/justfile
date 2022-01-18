@@ -1,0 +1,4 @@
+set shell := ["cmd.exe", "/c"]
+
+run:
+  start npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css --watch && start trunk serve
