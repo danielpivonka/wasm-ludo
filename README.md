@@ -18,6 +18,6 @@
 
 1. ```cargo run```
 
-### Environment
+## Environment
 
 - server runs on ```localhost:8080``` and the client runs on ```localhost:3000```
