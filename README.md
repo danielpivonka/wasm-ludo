@@ -11,7 +11,7 @@ School project built in **WASM**. Frontend is built in **yew** and server in **a
 
 ### running the client
 
-1. ```just start``` (opens up two new terminals with listeners - **tailwind** and **trunk**)
+1. ```just run``` (opens up two new terminals with listeners - **tailwind** and **trunk**)
 
 ## Server
 
