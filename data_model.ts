@@ -13,7 +13,7 @@ type Field = {
 type game = {
   id: string;
   startedAt: Date;
-  finishedAt: Date;
+  finishedAt: Date | null;
   fields: Field[];
   players: [
     {
