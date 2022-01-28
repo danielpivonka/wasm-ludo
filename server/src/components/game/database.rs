@@ -53,6 +53,18 @@ pub async fn update_board(data: web::Data<WebAppData>,game_id :&str ,fields:Vec<
   let filter = doc! { "_id" : oid };
   return update_game(data,filter, update).await;
 }
+pub async fn update_player(data: web::Data<WebAppData>,game_id :&str ,player:Player)->Result<UpdateResult,Box<dyn std::error::Error>>{
+  let oid = match ObjectId::parse_str(game_id) {
+    Ok(res) => res,
+    Err(err) => return Err(Box::new(err)),
+  };
+  let serialized_player = bson::to_bson(&player)?;
+  let serialized_color = bson::to_bson(&player.color)?;
+
+  let filter = doc! { "_id" : oid,"players.color":serialized_color };
+  let update =  doc! { "$set": { "players.$" : serialized_player } };
+  return update_game(data,filter, update).await;
+}
 async fn update_game(data: web::Data<WebAppData>,filter:Document,update:Document)->Result<UpdateResult,Box<dyn std::error::Error>>{
   let db = &data.lock().await.db;
   let game_collection = db.collection::<Game>("games");
