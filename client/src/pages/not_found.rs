@@ -21,7 +21,7 @@ pub fn not_found(props: &NotFoundProps) -> Html {
   };
 
   html! {
-    <Content class="h-full p-2 grid place-items-center">
+    <Content class="h-full grid place-items-center">
       <Card class="p-4 mx-6 md:mx-0 md:p-24 w-full grid place-items-center gap-10">
         <div class="flex items-center justify-center gap-10">
           <Icon class="fas fa-bug text-primary-600 text-8xl" />

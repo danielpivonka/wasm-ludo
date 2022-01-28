@@ -15,7 +15,7 @@ pub fn content(props: &ContentProps) -> Html {
   let ContentProps {children, class} = props;
 
   html! {
-    <div class={classnames!("max-w-screen-xl mx-auto", class)}>
+    <div class={classnames!("max-w-screen-xl mx-auto px-2 md:px-4", class)}>
       {for children.iter()}
     </div>
   }

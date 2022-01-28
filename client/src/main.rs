@@ -4,6 +4,7 @@ mod components;
 mod pages;
 mod routes;
 mod macros;
+mod bindings;
 
 use routes::Routes;
 
