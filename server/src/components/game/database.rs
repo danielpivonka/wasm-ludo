@@ -17,6 +17,7 @@ pub async fn create_game(data: web::Data<WebAppData>,creating_player:Player)->Re
     Err(e) => Err(e),
   }
 }
+
 pub async fn add_player(data: web::Data<WebAppData>,game_id :&str ,new_player:Player)->Result<UpdateResult,Box<dyn std::error::Error>>{
   let db = &data.lock().await.db;
   let game_collection = db.collection::<Game>("games");
@@ -27,12 +28,23 @@ pub async fn add_player(data: web::Data<WebAppData>,game_id :&str ,new_player:Pl
   let filter = doc! { "_id" : oid };
   let serialized_player = bson::to_bson(&new_player)?;
   let update =  doc! { "$push": { "players": serialized_player } };
-  let res = game_collection.update_one(
-    filter,
-          update,
-     None).await;
+  let res = game_collection.update_one(filter,update,None).await;
      match res {
       Ok(result) => Ok(result),
       Err(e) => Err(Box::new(e)),
     }
+}
+pub async fn find_game(data: web::Data<WebAppData>,game_id :&str) -> Result<Option<Game>,Box<dyn std::error::Error>>{
+  let db = &data.lock().await.db;
+  let game_collection = db.collection::<Game>("games");
+  let oid = match ObjectId::parse_str(game_id) {
+    Ok(res) => res,
+    Err(err) => return Err(Box::new(err)),
+  };
+  let filter = doc! { "_id" : oid };
+  let found = game_collection.find_one(filter, None).await;
+  match found {
+    Ok(result) => Ok(result),
+    Err(e) => Err(Box::new(e)),
+  }
 }
