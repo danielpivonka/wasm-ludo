@@ -2,7 +2,7 @@ use actix_web::{get, post, web, HttpResponse};
 use mongodb::{bson::{oid::ObjectId, doc, bson, self, Document}, results::UpdateResult};
 
 use crate::{
-  models::{game::Game, player::Player},
+  models::{game::Game, player::Player, color::Color},
   types::WebAppData,
 };
 
@@ -45,12 +45,14 @@ pub async fn find_game(data: web::Data<WebAppData>,game_id :&str) -> Result<Opti
 pub async fn update_board(data: web::Data<WebAppData>,game_id :&str ,fields:Vec<Color>)->Result<UpdateResult,Box<dyn std::error::Error>>{
   
   let serialized_fields = bson::to_bson(&fields)?;
-  let update =  doc! { "fields": serialized_fields };
   let oid = match ObjectId::parse_str(game_id) {
     Ok(res) => res,
     Err(err) => return Err(Box::new(err)),
   };
   let filter = doc! { "_id" : oid };
+
+  let update =  doc! { "fields": serialized_fields };
+
   return update_game(data,filter, update).await;
 }
 pub async fn update_player(data: web::Data<WebAppData>,game_id :&str ,player:Player)->Result<UpdateResult,Box<dyn std::error::Error>>{
@@ -63,6 +65,24 @@ pub async fn update_player(data: web::Data<WebAppData>,game_id :&str ,player:Pla
 
   let filter = doc! { "_id" : oid,"players.color":serialized_color };
   let update =  doc! { "$set": { "players.$" : serialized_player } };
+  return update_game(data,filter, update).await;
+}
+pub async fn start_game(data: web::Data<WebAppData>,game_id :&str)->Result<UpdateResult,Box<dyn std::error::Error>>{
+  let oid = match ObjectId::parse_str(game_id) {
+    Ok(res) => res,
+    Err(err) => return Err(Box::new(err)),
+  };
+  let filter = doc! { "_id" : oid };
+  let update =  doc! { "$set": { "started_at" : mongodb::bson::DateTime::now() } };
+  return update_game(data,filter, update).await;
+}
+pub async fn finish_game(data: web::Data<WebAppData>,game_id :&str)->Result<UpdateResult,Box<dyn std::error::Error>>{
+  let oid = match ObjectId::parse_str(game_id) {
+    Ok(res) => res,
+    Err(err) => return Err(Box::new(err)),
+  };
+  let filter = doc! { "_id" : oid };
+  let update =  doc! { "$set": { "finished_at" : mongodb::bson::DateTime::now() } };
   return update_game(data,filter, update).await;
 }
 async fn update_game(data: web::Data<WebAppData>,filter:Document,update:Document)->Result<UpdateResult,Box<dyn std::error::Error>>{
