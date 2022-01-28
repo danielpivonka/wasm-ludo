@@ -1,7 +1,5 @@
 use yew::prelude::*;
 
-use crate::classnames;
-
 #[derive(Properties, PartialEq, Clone)]
 pub struct ContentProps {
   #[prop_or_default]
@@ -15,7 +13,7 @@ pub fn content(props: &ContentProps) -> Html {
   let ContentProps { children, class } = props;
 
   html! {
-    <div class={classnames!("max-w-screen-xl mx-auto px-2 md:px-4", class)}>
+    <div class={classes!(String::from("max-w-screen-xl mx-auto px-2 md:px-4"), class)}>
       {for children.iter()}
     </div>
   }
