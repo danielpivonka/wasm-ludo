@@ -1,28 +1,23 @@
-use yew::prelude::*;
 use gloo::timers::callback::Interval;
+use yew::prelude::*;
 
-use crate::components::content::Content;
-use crate::components::card::Card;
-use crate::components::copy_bar::CopyBar;
 use crate::components::button::Button;
+use crate::components::card::Card;
+use crate::components::content::Content;
+use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct GameSetupProps {}
-
 #[function_component(GameSetup)]
-pub fn game_setup(props: &GameSetupProps) -> Html {
+pub fn game_setup() -> Html {
   let seconds = use_state(|| 0);
   let noop = Callback::from(|_| {});
-  
+
   {
     let seconds = seconds.clone();
     use_effect(move || {
-      let interval = Interval::new(1000, move || {
-        seconds.set(*seconds + 1)
-      });
-      
+      let interval = Interval::new(1000, move || seconds.set(*seconds + 1));
+
       move || {
         drop(interval);
       }
@@ -67,7 +62,7 @@ pub fn game_setup(props: &GameSetupProps) -> Html {
         <div class="w-full flex justify-end">
           <span>{"Waiting for other players to join"}</span>
         </div>
-        <Button class="w-full mt-16" onclick={noop.clone()} icon={start_icon}>{"Start the game!"}</Button>
+        <Button class="w-full mt-16" onclick={noop} icon={start_icon}>{"Start the game!"}</Button>
       </Card>
     </Content>
   }

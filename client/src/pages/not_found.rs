@@ -1,18 +1,15 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
-use crate::components::button::Button;
 
 use crate::routes::Route;
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct NotFoundProps {}
-
 #[function_component(NotFound)]
-pub fn not_found(props: &NotFoundProps) -> Html {
+pub fn not_found() -> Html {
   let history = use_history().unwrap();
   let onclick = Callback::once(move |_| history.push(Route::GameSetup));
 

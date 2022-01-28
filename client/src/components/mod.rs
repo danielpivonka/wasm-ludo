@@ -1,7 +1,7 @@
-pub mod spinner;
+pub mod button;
 pub mod card;
 pub mod content;
-pub mod icon;
-pub mod button;
 pub mod copy_bar;
+pub mod icon;
 pub mod outlined_item;
+pub mod spinner;
