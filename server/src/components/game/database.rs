@@ -37,6 +37,12 @@ pub async fn find_game(data: web::Data<WebAppData>,game_id :&str) -> Result<Opti
     Err(e) => Err(Box::new(e)),
   }
 }
+pub async fn update_board(data: web::Data<WebAppData>,game_id :&str ,fields:Vec<Color>)->Result<UpdateResult,Box<dyn std::error::Error>>{
+  
+  let serialized_fields = bson::to_bson(&fields)?;
+  let update =  doc! { "fields": serialized_fields };
+  return update_game(data,game_id,update).await;
+}
 async fn update_game(data: web::Data<WebAppData>,game_id :&str,update:Document)->Result<UpdateResult,Box<dyn std::error::Error>>{
   let db = &data.lock().await.db;
   let game_collection = db.collection::<Game>("games");
