@@ -17,7 +17,7 @@ pub async fn create_game(data: web::Data<WebAppData>,creating_player:Player)->Re
     Err(e) => Err(e),
   }
 }
-pub async fn add_player(data: web::Data<WebAppData>,game_id :&str ,new_player:Player, g:Game)->Result<UpdateResult,Box<dyn std::error::Error>>{
+pub async fn add_player(data: web::Data<WebAppData>,game_id :&str ,new_player:Player)->Result<UpdateResult,Box<dyn std::error::Error>>{
   let db = &data.lock().await.db;
   let game_collection = db.collection::<Game>("games");
   let oid = match ObjectId::parse_str(game_id) {
