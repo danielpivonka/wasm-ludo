@@ -4,6 +4,9 @@ mod bindings;
 mod components;
 mod pages;
 mod routes;
+mod models;
+mod types;
+mod utils;
 
 use routes::Routes;
 

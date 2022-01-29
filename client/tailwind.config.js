@@ -7,6 +7,20 @@ module.exports = {
       colors: {
         primary: colors.indigo,
       },
+      gridTemplateColumns: {
+        board: "40% 20% 40%",
+      },
+      gridTemplateRows: {
+        board: "40% 20% 40%",
+      },
+      padding: {
+        full: "100%",
+        "1/2": "50%",
+      },
+      borderWidth: {
+        "1/2": "50%",
+        full: "100%",
+      },
     },
   },
   plugins: [],

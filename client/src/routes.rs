@@ -3,11 +3,14 @@ use yew_router::prelude::*;
 
 use crate::pages::game_setup::GameSetup;
 use crate::pages::not_found::NotFound;
+use crate::pages::game::Game;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
   #[at("/")]
   GameSetup,
+  #[at("/game")]
+  Game,
   #[not_found]
   #[at("/404")]
   NotFound,
@@ -16,6 +19,7 @@ pub enum Route {
 fn switch(routes: &Route) -> Html {
   match routes {
     Route::GameSetup => html! {<GameSetup />},
+    Route::Game => html! {<Game />},
     Route::NotFound => html! {<NotFound />},
   }
 }
