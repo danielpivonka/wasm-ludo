@@ -6,6 +6,7 @@ use yew::prelude::*;
 
 use crate::models::color::Color;
 use crate::components::field::Field;
+use crate::components::icon::Icon;
 use crate::types::FieldType;
 
 #[derive(PartialEq, Clone)]
@@ -92,13 +93,13 @@ pub fn fields(props: &FieldsProps) -> Html {
     (0, 12),
   ]));
 
-  let map = match position {
-    FieldsPosition::Top => top_position_map,
-    FieldsPosition::Right => right_position_map,
-    FieldsPosition::Bottom => bottom_position_map,
-    FieldsPosition::Left => left_position_map,
-};
-
+  let (map, arrow_class): (_, String) = match position {
+    FieldsPosition::Top => (top_position_map, "fas fa-long-arrow-alt-down".into()),
+    FieldsPosition::Right => (right_position_map, "fas fa-long-arrow-alt-left".into()),
+    FieldsPosition::Bottom => (bottom_position_map, "fas fa-long-arrow-alt-up".into()),
+    FieldsPosition::Left => (left_position_map, "fas fa-long-arrow-alt-right".into()),
+  };
+  
   let classes: String = match position {
     FieldsPosition::Top | FieldsPosition::Bottom => "grid-cols-3 grid-rows-6".into(),
     FieldsPosition::Right | FieldsPosition::Left => "grid-cols-6 grid-rows-3".into(),
@@ -110,9 +111,22 @@ pub fn fields(props: &FieldsProps) -> Html {
         fields.iter().enumerate().map(|(index, field)| {
           {
             if let Some(position) = map.get(&index) {
-              html! { <Field color={if *position == 8 { Some(color.clone()) } else {None}}>{format!("{}", position)}</Field> }
+              html! { 
+                <Field 
+                  color={color.clone()}
+                  color_background={*position == 8}
+                >
+                  {
+                    if *position == 6 {
+                      html! { <Icon class={arrow_class.clone()} /> }
+                    } else {
+                      html! { format!("{}", position) }
+                    }
+                  }
+                </Field>
+              }
             } else {
-              html! { <Field color={Some(color.clone())} /> }
+              html! { <Field color={color.clone()} color_background={true} /> }
             }
           }
         }).collect::<Vec<Html>>()

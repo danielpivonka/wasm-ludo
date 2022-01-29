@@ -21,7 +21,7 @@ pub fn player_corner(props: &PlayerCornerProps) -> Html {
 
   html! {
     <div class={classes!(String::from("h-full w-full grid place-items-center drop-shadow-lg"), color_class)}>
-      <div class="w-1/2 h-1/2 rounded-full bg-neutral-100 grid grid-cols-2 grid-rows-2 p-4">
+      <div class="w-1/2 h-1/2 rounded-full bg-neutral-100 grid grid-cols-2 grid-rows-2 p-4 drop-shadow-lg border border-neutral-300">
         {
           (0..pawn_count).map(|index| html! {<Pawn key={index} color={color.clone()}/>}).collect::<Vec<Html>>()
         }
