@@ -1,19 +1,15 @@
 use yew::{function_component, html};
 
+mod bindings;
 mod components;
+mod pages;
+mod routes;
 
-use components::spinner::Spinner;
+use routes::Routes;
 
 #[function_component(App)]
 pub fn app() -> Html {
-  html! {
-    <div class="h-full grid place-items-center">
-      <div class="flex flex-col justify-center items-center">
-        <Spinner />
-        <h1 class="mt-4 font-semibold">{"Hello from the client, page is under construction"}</h1>
-      </div>
-    </div>
-  }
+  html! {<Routes />}
 }
 
 fn main() {
