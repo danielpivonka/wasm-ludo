@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 mod components;
 mod models;
 mod types;
+mod utils;
 
 use models::app_data::AppData;
 

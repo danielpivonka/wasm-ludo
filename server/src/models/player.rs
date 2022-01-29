@@ -10,4 +10,5 @@ pub struct Player {
   pub color: Color,
   pub pawns_at_start: u32,
   pub home: Vec<Field>,
+  pub is_bot: bool
 }
