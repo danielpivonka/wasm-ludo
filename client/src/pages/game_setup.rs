@@ -1,5 +1,6 @@
 use gloo::timers::callback::Interval;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 use crate::components::button::Button;
 use crate::components::card::Card;
@@ -7,11 +8,17 @@ use crate::components::content::Content;
 use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
+use crate::routes::Route;
 
 #[function_component(GameSetup)]
 pub fn game_setup() -> Html {
+  let history = use_history().unwrap();
   let seconds = use_state(|| 0);
   let noop = Callback::from(|_| {});
+
+  let redirect_to_game = Callback::from(move |_| {
+    history.push(Route::Game);
+  });
 
   {
     let seconds = seconds.clone();
@@ -62,7 +69,7 @@ pub fn game_setup() -> Html {
         <div class="w-full flex justify-end">
           <span>{"Waiting for other players to join"}</span>
         </div>
-        <Button class="w-full mt-16" onclick={noop} icon={start_icon}>{"Start the game!"}</Button>
+        <Button class="w-full mt-16" onclick={redirect_to_game} icon={start_icon}>{"Start the game!"}</Button>
       </Card>
     </Content>
   }
