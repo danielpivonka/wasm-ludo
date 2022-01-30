@@ -13,6 +13,6 @@ use crate::utils::enums::MoveResult;
 //    hrac tiahnut, a server ich posle na clienta (alebo message NoValidPositions)
 pub fn make_a_move_player(game: &mut Game, player: &mut Player) -> MoveResult {
     let dice_value = throw_dice(); // TODO await
-    let position: usize = 0; // TODO await message_from_client/player();
+    let position: usize = 0; // TODO await message_from_client/player(); promote new piece = position 100
     game.execute_move(position, dice_value, false) // TODO set home column
 }
