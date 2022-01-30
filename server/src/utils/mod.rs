@@ -43,16 +43,9 @@ pub enum ServerMessage {
 
 use crate::models::color::Color;
 use crate::types::Field;
-use crate::models::game::{Game, MoveResultType};
+use crate::models::game::{Game, MoveResult};
 use rand::Rng;
-
-
-//
-// // could be a method of Game
-// // returns player's home Vec<Field> based on their color
-// pub fn get_home(color: Color) -> Vec<Field> {
-//
-// }
+use crate::models::player::Player;
 
 
 pub fn get_dice_value() -> usize {
@@ -63,25 +56,25 @@ pub fn get_dice_value() -> usize {
 pub fn throw_dice() -> usize {
     let mut dice_value: usize = 0;
     // player/client sends MessageType::ThrowDice
-    << message exchange >>
+    // << message exchange >>
     match get_dice_value() {
         6 => {
             dice_value += 6;
-            << message exchange >>;
+            // << message exchange >>;
             match get_dice_value() {
                 6 => {
                     dice_value += 6;
-                    << message exchange >>;
+                    // << message exchange >>;
                     match get_dice_value() {
                         // if we throw 6 three times, it gets reset
                         6 => {
                             dice_value = 0;
-                            << message exchange >>
+                            // << message exchange >>
                         },
-                        n => dice_value += n;
+                        n => dice_value += n
                     }
                 },
-                n => dice_value += n;
+                n => dice_value += n
             }
         },
         n => dice_value += n
@@ -90,38 +83,116 @@ pub fn throw_dice() -> usize {
     dice_value
 }
 
+pub fn throw_a_dice_bot(game: &Game) -> usize {
+
+    match get_dice_value() {
+        // if AI can promote, it should (always?) promote
+        //   - or should we also consider getting our piece to home / jumping on opponents' pieces?
+        6 => {
+            match game.can_promote_piece() {
+                true => 6,
+                // if can't promote, keep throwing dice
+                false => match get_dice_value() {
+                    6 => match get_dice_value() {
+                        // 3x6 => 0
+                        6 => 0,
+                        n => 6 + 6 + n,
+                    },
+                    n => 6 + n
+                }
+            }
+        },
+        n => n
+    }
+}
+
+
+pub fn make_a_move_bot(game: &mut Game, player: &mut Player) -> MoveResult {
+
+    let dice_value = throw_dice();
+
+    if dice_value == 6 {
+        game.promote_piece()
+    }
+
+    // if dice_value = 6, we can promote (was checked)
+    // otherwise, check available moves
+
+    let piece_positions = game.get_players_pieces_positions(game.current_player);
+    let piece_positions_to_jump_home: Vec<usize> = piece_positions
+        .iter()
+        .filter(|&position| game.can_jump_to_home(*position, dice_value))
+        .collect();
+
+    // we can choose a random piece to move, since all of them will end up in home
+    if !piece_positions_to_jump_home.is_empty() {
+        return game.execute_move(piece_positions_to_jump_home[0], dice_value)
+    }
+
+    // otherwise, we will check if we can move any piece at all (currently we won't try to remove
+    //   opponents' pieces
+    let piece_positions_to_move: Vec<usize> = piece_positions
+        .iter()
+        .filter(|&position| game.can_jump(*position, dice_value))
+        .collect();
+
+    // we can choose a random piece to move (i.e. is not blocked).. or a piece that's closest to home for example
+    match piece_positions_to_move.is_empty() {
+        false => game.execute_move(piece_positions_to_move[0], dice_value),
+        // no valid move
+        true => MoveResult::Error(String::from("No valid move."))
+    }
+
+}
+
+
+// we could check if any moves are possible for the player - that has to be done on FE?
+// if player has no valid moves, he should be skipped (as it's done for AI),
+//    but when/how we inform the client ?
+// player/client can keep sending us positions, but if he has no valid moves at all,
+//   we will keep giving MoveResult::Error
+// idealne by client/player hned vedel, ze hrac nemoze tiahnut figurkou - teoreticky by
+//    od clienta mohla prist poziadavka GetValidPositions - pozicie figuriek, s ktorymi moze
+//    hrac tiahnut, a server ich posle na clienta (alebo message NoValidPositions)
+pub fn make_a_move_player(game: &mut Game, player: &mut Player) -> MoveResult {
+    let dice_value = await throw_dice();
+    let position: usize = await message_from_client/player();
+    game.execute_move(position, dice_value)
+}
+
 pub fn make_a_move() {
 
     let mut game: Game = find_game(id);
+    let mut player = game.get_current_player_mut();
 
-    let mut player = game.get_player();
+    let move_result = match player.is_bot {
+        true => make_a_move_bot(&mut game, &mut player),
+        false => make_a_move_player(&mut game, &mut player)
+    };
 
-    if player.is_bot {
-        return make_a_move_bot()
-    }
-
-    // dice_value
-    let dice_value = throw_dice();
-    let position: usize = message_from_client/player();
-
-
-    // throw a dice and get position (which piece to move) from player
-    // different behaviour for AI (special attribute in Game? AI_player?
-    //    - if AI_players contains game.current_player => it is AI
-
-    match game.is_a_valid_move(position, dice_value) {
-        MoveResultType::Success => {
-            game.execute_move();
+    match move_result {
+        MoveResult::Success(msg) => {
             game.update_current_player();
-            update_db(...)
+            // <<update db>> since field(s) have changed (at least current_player has changed,
+            //    even if player's move was skipped)
+            // send message to client(s) ?
         },
-        MoveResultType::Error(err) => send/broadcast_error_message(err)
+        MoveResult::Error(msg) => {
+            // <<move was invalid>> - we dont need to update db?
+            // inform player/client(s) about error ?
+        }
     }
 
-    // throw dice (generate 1-6, and inform the player(s) - send a message)
-    // wait for a message from player (his choice of figure for example)
 
-    // je zalozene na loopoch? vzdy cakame na urcity typ spravy od klienta:
+
+    // na FE by malo byt tlacitko na 'Promote piece/pawn/figure'
+    // najskor hrac hodi kockou (poziada server o vygenerovanie hodnoty 1-6),
+    //    ten hodnotu posle clientovi
+    //    - ak hodi 1-5, musi zvolit figurku s ktorou chce tiahnut
+
+
+
+
 
     // vzdy ked obdrzime message - deserializovat, a podla typu message nieco spravit
     //    MessageType::ThrowDice
@@ -163,10 +234,7 @@ pub fn make_a_move() {
 
     // ako ukladat aktualneho / nasledujuceho hraca? v DB
     // pri ukonceni tahu by sa mal vo frontende prepnut dalsi hrac (napr. podla svojej farby vs. current_player
-    //    po aktualizacii) - a napr. 'zasednut' tlacitko, ktore normalne umozni hodit kostkou
+    //    po aktualizacii) - a napr. 'gray out' tlacitko, ktore normalne umozni hodit kostkou
     // zasleme spravu nasledujucemu hracovi, ze je na rade (napr. CurrentPlayer)
     // a hraci, ktory skoncil tah teraz posleme spravu, ze nie je na rade (NotCurrentPlayer)
-
-
-    // pridat .idea do gitignore
 }
