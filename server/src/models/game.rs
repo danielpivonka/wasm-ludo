@@ -1,9 +1,11 @@
-use crate::types::Field;
 use mongodb::bson::DateTime;
 use serde::{Deserialize, Serialize};
 
-use super::player::Player;
 use crate::models::color::Color;
+use crate::types::Field;
+use crate::utils::enums::MoveResult;
+
+use super::player::Player;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Game {
@@ -17,6 +19,22 @@ pub struct Game {
 
 
 impl Game {
+    // TODO: make player 2-4 optional and create bots if they are None
+    pub fn new(player_1: String, player_2: String, player_3: String, player_4: String) -> Self {
+        Game{
+            id: "".to_string(), // TODO
+            started_at: DateTime::now(),
+            finished_at: None,
+            fields: vec![None; 48], // TODO check if this is correct
+            players: vec![
+                Player::new(player_1, Color::Red, false),
+                Player::new(player_2, Color::Green, false),
+                Player::new(player_3, Color::Blue, false),
+                Player::new(player_4, Color::Yellow, false),
+            ],
+            current_player: Color::Red,
+        }
+    }
 
     // there should be at most one winner at a time, therefore we take the first
     //   player that meets the winning condition
@@ -73,14 +91,14 @@ impl Game {
         }
     }
 
-    pub fn is_occupied_by(&self, field: &Field, color: Color) -> bool {
+    pub fn is_occupied_by(&self, field: &Field, color: &Color) -> bool {
         match field {
             None => false,
             Some(_color) => _color == color
         }
     }
 
-    pub fn get_players_pieces_positions(&self, color: Color) -> Vec<usize> {
+    pub fn get_players_pieces_positions(&self, color: &Color) -> Vec<usize> {
         self.fields
             .iter()
             .enumerate()
@@ -306,7 +324,7 @@ impl Game {
         // dice_value = 0 means player threw 3x6, therefore he gets skipped (should we create a message ?)
         // MoveResult::SkipPlayer
         if dice_value == 0 {
-            MoveResult::Success(String::from("Throwing 3x6 means you have to wait a round."))
+            return MoveResult::Success(String::from("Throwing 3x6 means you have to wait a round."));
         }
 
         // since dice_value includes bonus throws, dice_value = 6 can only occur when
@@ -314,10 +332,10 @@ impl Game {
         // might add a check for 'pawns_at_start > 0', if that is not handled in FE
         if dice_value == 6 {
             match self.can_promote_piece() {
-                false => MoveResult::Error(String::from("We can't promote - starting field is occupied by our piece.")),
+                false => return MoveResult::Error(String::from("We can't promote - starting field is occupied by our piece.")),
                 true => {
                     self.promote_piece();
-                    MoveResult::Success(String::from("Your piece has been promoted!"))
+                    return MoveResult::Success(String::from("Your piece has been promoted!"));
                 }
             }
         }
@@ -365,7 +383,7 @@ impl Game {
     }
 
     // returns whether a field specified by <position> is is occupied by a piece with <color>
-    pub fn is_players_piece(&self, position: usize, player_color: Color) -> bool {
+    pub fn is_players_piece(&self, position: usize, player_color: &Color) -> bool {
         match self.fields.get(position) {
             Some(field) => match field {
                 Some(color) => color == player_color,
@@ -376,7 +394,7 @@ impl Game {
     }
 
     pub fn is_current_players_piece(&self, position: usize) -> bool {
-        self.is_players_piece(position, self.current_player)
+        self.is_players_piece(position, &self.current_player)
     }
 
     // returns whether a field is empty
@@ -414,10 +432,4 @@ impl Game {
     pub fn is_current_player_AI(&self) -> bool {
         self.is_player_AI(self.current_player)
     }
-}
-
-
-pub enum MoveResult {
-    Success(String),
-    Error(String)
 }
