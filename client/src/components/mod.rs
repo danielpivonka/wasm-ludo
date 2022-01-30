@@ -11,3 +11,5 @@ pub mod pawn;
 pub mod fields;
 pub mod field;
 pub mod board_middle;
+pub mod player;
+pub mod die;

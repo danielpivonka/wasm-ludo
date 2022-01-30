@@ -118,7 +118,7 @@ pub fn fields(props: &FieldsProps) -> Html {
                 >
                   {
                     if *position == 6 {
-                      html! { <Icon class={arrow_class.clone()} /> }
+                      html! { <Icon class={classes!(arrow_class.clone())} /> }
                     } else {
                       html! { format!("{}", position) }
                     }

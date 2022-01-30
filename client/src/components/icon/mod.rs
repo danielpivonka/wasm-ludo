@@ -2,14 +2,14 @@ use yew::prelude::*;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct IconProps {
-  pub class: String,
+  pub class: Classes,
 }
 
 #[function_component(Icon)]
 pub fn icon(props: &IconProps) -> Html {
-  let IconProps { class } = props;
+  let IconProps { class } = props.clone();
 
   html! {
-    <span class={class} />
+    <span class={classes!(class)} />
   }
 }
