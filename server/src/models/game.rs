@@ -6,6 +6,8 @@ use crate::types::Field;
 use crate::utils::enums::MoveResult;
 
 use super::player::Player;
+use crate::utils::bot::create_bot_name;
+use crate::utils::game::initialize_players;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Game {
@@ -19,19 +21,13 @@ pub struct Game {
 
 
 impl Game {
-    // TODO: make player 2-4 optional and create bots if they are None
-    pub fn new(player_1: String, player_2: String, player_3: String, player_4: String) -> Self {
+    pub fn new(player_names: Vec<String>) -> Self {
         Game{
             id: "".to_string(), // TODO
             started_at: DateTime::now(),
             finished_at: None,
-            fields: vec![None; 48], // TODO check if this is correct
-            players: vec![
-                Player::new(player_1, Color::Red, false),
-                Player::new(player_2, Color::Green, false),
-                Player::new(player_3, Color::Blue, false),
-                Player::new(player_4, Color::Yellow, false),
-            ],
+            fields: vec![None; 48], // TODO check if this number is correct
+            players: initialize_players(player_names),
             current_player: Color::Red,
         }
     }
@@ -161,7 +157,8 @@ impl Game {
 
     // add check for player.pawns_at_start > 0 ?
     // can jump to starting position
-    pub fn can_promote_piece(&self) -> bool {
+    /// check if starting position is empty
+    pub fn is_start_empty(&self) -> bool {
         self.is_available_field(self.get_starting_position())
     }
 
@@ -180,6 +177,10 @@ impl Game {
         self.is_in_bounds(position) && !self.is_current_players_piece(position)
     }
 
+    pub fn opponent_at_field(&self, position: usize) -> bool {
+        self.is_in_bounds(position) && !self.is_current_players_piece(position) && self.is_opponents_piece(position)
+    }
+
     pub fn get_new_position(&self, position: usize, dice_value: usize) -> usize {
         (position + dice_value) % self.fields.len()
     }
@@ -190,6 +191,11 @@ impl Game {
             self.is_available_field(self.get_new_position(position, dice_value))
     }
 
+    pub fn will_remove_enemy(&self, position: usize, dice_value: usize) -> bool {
+        dice_value < self.distance_from_home(position) &&
+            self.is_opponents_piece(self.get_new_position(position, dice_value))
+    }
+
     pub fn is_in_bounds_home(&self, home_offset: usize) -> bool {
         home_offset >= 0 && home_offset < self.get_home_size()
     }
@@ -198,6 +204,7 @@ impl Game {
         self.is_in_bounds_home(home_offset) && !self.is_home_field_occupied(home_offset)
     }
 
+    /// check if piece can reach `safe zone`
     pub fn can_jump_to_home(&self, position: usize, dice_value: usize) -> bool {
         // let distance_from_home = self.distance_from_home(position);
         // let will_reach_home = dice_value >= distance_from_home;
@@ -327,11 +334,12 @@ impl Game {
             return MoveResult::Success(String::from("Throwing 3x6 means you have to wait a round."));
         }
 
-        // since dice_value includes bonus throws, dice_value = 6 can only occur when
-        //   a player decides to promote his piece (without bonus throws)
-        // might add a check for 'pawns_at_start > 0', if that is not handled in FE
-        if dice_value == 6 {
-            match self.can_promote_piece() {
+        //TODO we need to get message if player wants to promote his piece (how?)
+        if position == 100 {
+            if dice_value < 6 {
+                return MoveResult::Error(String::from("We can't promote - did not roll 6."));
+            }
+            match self.is_start_empty() {
                 false => return MoveResult::Error(String::from("We can't promote - starting field is occupied by our piece.")),
                 true => {
                     self.promote_piece();
@@ -393,8 +401,24 @@ impl Game {
         }
     }
 
+    pub fn is_opponents_piece(&self, position: usize) -> bool {
+        match self.fields.get(position) {
+            Some(field) => match field {
+                Some(color) => color != self.current_player,
+                None => false
+            }
+            None => false
+        }
+    }
+
     pub fn is_current_players_piece(&self, position: usize) -> bool {
-        self.is_players_piece(position, &self.current_player)
+        match self.fields.get(position) {
+            Some(field) => match field {
+                Some(color) => color == self.current_player,
+                None => false
+            }
+            None => false
+        }
     }
 
     // returns whether a field is empty

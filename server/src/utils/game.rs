@@ -1,15 +1,31 @@
 use crate::models::game::Game;
-use crate::utils::bot::make_a_move_bot;
+use crate::utils::bot::{make_a_move_bot, create_bot_name};
 use crate::utils::enums::MoveResult;
 use crate::utils::player::make_a_move_player;
+use crate::models::player::Player;
+use crate::models::color::Color;
+
+pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
+    let mut colors = vec![Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
+    let mut players = vec![];
+    for name in player_names {
+        players.push(Player::new(name, *colors.next().unwrap(), false))
+    }
+    while players.len() < 4 {
+        players.push(Player::new(create_bot_name(), *colors.next().unwrap(), true))
+    }
+    players
+}
 
 pub fn play_round() {
 
     let mut game = Game::new(
-        "John".to_string(),
-        "Josh".to_string(),
-        "James".to_string(),
-    "Jack".to_string(),
+        vec![
+            "John".to_string(),
+            "Josh".to_string(),
+            "James".to_string(),
+            "Jack".to_string(),
+        ]
     ); // TODO replace with find_game(id); (from DB)
 
     let mut player = game.get_current_player_mut();
