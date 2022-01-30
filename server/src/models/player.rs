@@ -8,7 +8,8 @@ use super::color::Color;
 pub struct Player {
     pub player_id: String,
     pub color: Color,
-    pub pawns_at_start: u32,
+    pub pawns_at_start: usize,
+    pub pawns_at_finish: usize,
     pub home: Vec<Field>,
     pub is_bot: bool
 }
@@ -23,8 +24,11 @@ impl Player {
     // returns whether all player's pieces are in home (occupy fields of home)
     // we assume there are 4 pieces for each player
     pub fn check_winner(&self) -> bool {
-        let occupied_fields: Vec<Field> = self.home.iter().filter(|&field| field.is_some()).collect();
-        occupied_fields.len() >= self.pieces_count()
+        // let occupied_fields: Vec<Field> = self.home.iter().filter(|&field| field.is_some()).collect();
+        // occupied_fields.len() >= self.pieces_count()
+
+        self.pawns_at_home == self.pieces_count()
+
     }
 
     pub fn return_piece_to_start(&mut self) {

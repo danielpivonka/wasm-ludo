@@ -2,43 +2,28 @@
 
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ClientMessage {
-    // CreateRoom(...),
-    // JoinRoom(...),
     ThrowDice,
-    MoveFigure(i32),
-    PlaceFigure
+    MoveFigure(usize),
+    PromotePiece // shouldn't need to pass color, since server should has attr current_player
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ServerMessage {
-    JoinedRoom {
-        room_name: String,
-        players: Vec<(String, u32, bool)>,
-        active_player: usize,
-        player_index: usize,
-        board: Vec<((i32, i32), Piece)>,
-        pieces: Vec<Piece>,
-    },
-    JoinFailed(String),
-    Chat {
-        from: String,
-        message: String,
-    },
+    DiceValue(usize), // response to ThrowDice
+    SkipPlayer, // - if there are no moves, we have to move on to the next player?
+                // - is handled in FE? (we can use 'GetAvailableMoves' util)
+                //   since player can't really choose a piece/position to move (i.e. we ?
+    MoveSuccessful(String),  // we successfully moved a piece; msg = "Piece is now secure in your home"
+                             // or MoveSuccess
+    MoveFailed(String),  // or MoveFail / MoveError - if we can't make a certain move
+                         // - would overjump home; field is blocked by our piece ...
+    PiecePromoted, // response to PromotePiece - is also MoveSuccessful, but
     Information(String),
-    NewPlayer(String),
-    PlayerReconnected(usize),
-    PlayerDisconnected(usize),
-    PlayerTurn(usize),
-    Played(Vec<(Piece, i32, i32)>),
-    Swapped(usize),
-    MoveAccepted(Vec<Piece>),
-    MoveRejected,
-    PlayerScore {
-        delta: u32,
-        total: u32,
-    },
-    PiecesRemaining(usize),
-    ItsOver(usize),
+
+    // NewPlayer(String),
+    // PlayerReconnected(usize),
+    // PlayerDisconnected(usize),
+    // GameOver(Color),  // winner of a game
 }
 
 use crate::models::color::Color;
@@ -83,7 +68,7 @@ pub fn throw_dice() -> usize {
     dice_value
 }
 
-pub fn throw_a_dice_bot(game: &Game) -> usize {
+pub fn throw_dice_bot(game: &Game) -> usize {
 
     match get_dice_value() {
         // if AI can promote, it should (always?) promote
@@ -109,16 +94,18 @@ pub fn throw_a_dice_bot(game: &Game) -> usize {
 
 pub fn make_a_move_bot(game: &mut Game, player: &mut Player) -> MoveResult {
 
-    let dice_value = throw_dice();
+    let dice_value = throw_dice_bot(game);
 
     if dice_value == 6 {
-        game.promote_piece()
+        game.promote_piece();
+        return MoveResult::Success(String::from("Piece promoted."))
     }
 
     // if dice_value = 6, we can promote (was checked)
     // otherwise, check available moves
 
     let piece_positions = game.get_players_pieces_positions(game.current_player);
+
     let piece_positions_to_jump_home: Vec<usize> = piece_positions
         .iter()
         .filter(|&position| game.can_jump_to_home(*position, dice_value))
@@ -130,17 +117,17 @@ pub fn make_a_move_bot(game: &mut Game, player: &mut Player) -> MoveResult {
     }
 
     // otherwise, we will check if we can move any piece at all (currently we won't try to remove
-    //   opponents' pieces
+    //   opponents' pieces)
     let piece_positions_to_move: Vec<usize> = piece_positions
         .iter()
         .filter(|&position| game.can_jump(*position, dice_value))
         .collect();
 
     // we can choose a random piece to move (i.e. is not blocked).. or a piece that's closest to home for example
-    match piece_positions_to_move.is_empty() {
-        false => game.execute_move(piece_positions_to_move[0], dice_value),
+    match !piece_positions_to_move.is_empty() {
+        true => game.execute_move(piece_positions_to_move[0], dice_value),
         // no valid move
-        true => MoveResult::Error(String::from("No valid move."))
+        false => MoveResult::Error(String::from("No valid move."))
     }
 
 }
@@ -159,6 +146,7 @@ pub fn make_a_move_player(game: &mut Game, player: &mut Player) -> MoveResult {
     let position: usize = await message_from_client/player();
     game.execute_move(position, dice_value)
 }
+
 
 pub fn make_a_move() {
 
@@ -183,14 +171,33 @@ pub fn make_a_move() {
         }
     }
 
+    // upravit check_winner - pridat atribut pawns_at_home
+    // skontrolovat najskor, ci ide o move v ramci home column
+    //   - t.j. funkcii predame len home_offset namiesto position
+
+    // je plan z DC - musime sa dostat do domecku (za home column)
+    // home column ma 5 policek - ak stojime na prvom policku, musime hodit 5,
+    //   aby sme sa dostali do home
 
 
-    // na FE by malo byt tlacitko na 'Promote piece/pawn/figure'
+    // aky je nakoniec ten plan - ako velky je domecek a ci sa mozu figurky v domecku posuvat,
+    //  pripadne, ci potrebuju 'skocit' do ciela (za home column) - potom treba pridat nejaky atribut
+    //  'pawns_at_finish' / 'pawns_in_home'
+    // na FE by malo byt tlacitko na 'Promote piece/pawn/figure' alebo len oznacenie celeho startovaneho bloku?
     // najskor hrac hodi kockou (poziada server o vygenerovanie hodnoty 1-6),
     //    ten hodnotu posle clientovi
     //    - ak hodi 1-5, musi zvolit figurku s ktorou chce tiahnut
 
+    // napr. client caka, az obdrzi spravu od serveru (ci je ValidMove, ...):
+    //   - ak obdrzi MoveFailed, tak sa hrac nezmeni
+    //   - ak obdrzi MoveSuccessful / SkipPlayer / ..., tak sa zmeni hrac a musime nasledne
+    //     vyslat na server spravu MakeMove, aby sme zavolali na serveri make_move()
+    //     - v ramci MakeMove server caka na ThrowDice message od clienta,
+    //       a nasledne bud MovePiece(position) alebo PromotePiece atd.
+    //   - ak obrdzi GameOver(winner), tak moze oznamit vitaza a uz neposiela MakeMove spravu serveru
 
+    // pre zacatie hry mozeme mat StartGame - ma aj 'argumenty', ci uz je vsetko ulozene v DB ?
+    // definovat ake messages moze posielat client / server
 
 
 

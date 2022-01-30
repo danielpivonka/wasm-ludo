@@ -55,7 +55,8 @@ impl Game {
     // how far away is the starting position (where we place pieces after throwing 6)
     //   from the ending position (= the last field before home)
     fn start_end_position_difference(&self) -> usize {
-        1
+        // 1
+        2
     }
 
     // we can use this 'modulo trick' to deal with different offsets and looping (pos 39 -> 0)
@@ -89,8 +90,9 @@ impl Game {
     }
 
     // we assume home_offset is valid
-    pub fn get_home_field(&self, player_color: Color, home_offset: usize) -> &Field {
-        let player = self.players.iter().filter(|&player| player.color == player_color).next().unwrap();
+    pub fn get_home_field(&self, home_offset: usize) -> &Field {
+        let player = self.get_current_player();
+        // let player = self.players.iter().filter(|&player| player.color == player_color).next().unwrap();
         &player.home[home_offset]
     }
 
@@ -109,14 +111,11 @@ impl Game {
         }
     }
 
-    // we can use the following (simplest) board as an example:
-    // https://www.vectorstock.com/royalty-free-vector/ludo-board-game-vector-8703408
     // there is a clock-wise ordering: Yellow, Blue, Red, Green
-    // there are 40 fields in the main 'board' (if we change the board - 56 fields e.g.),
-    //   we have to adjust the constants
-    pub fn get_offset(&self, color: Color) -> usize {
+    // TODO: move to a utility, pass attr 'color' to replace 'self.current_player'
+    pub fn get_offset(&self) -> usize {
         let offset = (self.fields.len() / 4) as usize;
-        match color {
+        match self.current_player {
             Color::Yellow => 0,
             Color::Blue => offset,
             Color::Red => offset * 2,
@@ -126,8 +125,7 @@ impl Game {
 
     // position of the field where we put pieces after throwing 6
     pub fn get_starting_position(&self) -> usize {
-        // self.get_offset() + 1
-        self.get_offset(self.current_player)
+        self.get_offset() + 8
     }
 
     // if we land on opponent at 'position', we remove his piece (we can't jump on our own piece)
@@ -143,6 +141,8 @@ impl Game {
         player.return_piece_to_start();
     }
 
+    // add check for player.pawns_at_start > 0 ?
+    // can jump to starting position
     pub fn can_promote_piece(&self) -> bool {
         self.is_available_field(self.get_starting_position())
     }
@@ -219,6 +219,11 @@ impl Game {
         dice_value >= self.distance_from_home(position)
     }
 
+    // if we move 'dice_value' fields, we will reach beyond the main board/field
+    pub fn can_reach_finish(&self, position: usize, dice_value: usize) -> bool {
+        dice_value == self.distance_from_home(position) + self.get_home_size()
+    }
+
     // distance_from_home gets you already to the first home field, that's why '>=' and not only '>'
     pub fn would_overjump_home(&self, position: usize, dice_value: usize) -> bool {
         dice_value >= self.distance_from_home(position) + self.get_home_size()
@@ -243,17 +248,63 @@ impl Game {
     }
 
     pub fn is_home_field_occupied(&self, home_offset: usize) -> bool {
-        match self.get_home_field(self.current_player, home_offset) {
+        match self.get_home_field(home_offset) {
             None => false,
             Some(_) => true
         }
     }
 
+    // jump from home column (1 of 5 home fields) to finish
+    pub fn jump_from_home_to_finish(&mut self, home_offset: usize) {
+        let home = self.get_home_mut();
+        home[home_offset] = None;
+        let mut player = self.get_current_player_mut();
+        player.pawns_at_finish += 1;
+    }
+
+    // jump from main field to finish
+    pub fn jump_to_finish(&mut self, position: usize) {
+        self.fields[position] = None;
+        let mut player = self.get_current_player_mut();
+        player.pawns_at_finish += 1;
+    }
+
+    pub fn jump_from_home(&mut self, old_home_offset: usize, new_home_offset: usize) {
+        let home = self.get_home_mut();
+        home[old_home_offset] = None;
+        home[new_home_offset] = Some(self.current_player)
+    }
+
+    // when we are trying to move piece in home column (1 out of 5 home fields)
+    fn execute_move_from_home(&mut self, home_offset: usize, dice_value: usize) -> MoveResult {
+
+        let distance_from_home = self.get_home_size() - home_offset;
+        match dice_value == distance_from_home {
+            true => {
+                self.jump_from_home_to_finish(home_offset);
+                MoveResult::Success(String::from("Move successful."))
+            },
+            false => match dice_value > distance_from_home {
+                true => MoveResult::Error(String::from("Would overjump home.")),
+                false => {
+                    let new_home_offset = home_offset + dice_value;
+                    match self.is_available_home_field(new_home_offset) {
+                        true => {
+                            self.jump_from_home(home_offset, new_home_offset);
+                            MoveResult::Success(String::from("Move successful."))
+                        },
+                        false => MoveResult::Error(String::from("Home field is occupied.")),
+                    }
+                }
+            }
+        }
+    }
 
     // as of now, we assume we can only move pieces from 'main fields', not home
-    pub fn execute_move(&mut self, position: usize, dice_value: usize) -> MoveResult {
+    pub fn execute_move(&mut self, position: usize, dice_value: usize, home_column: bool) -> MoveResult {
 
         // dice_value = 0 means player threw 3x6, therefore he gets skipped (should we create a message ?)
+        // MoveResult::SkipPlayer
         if dice_value == 0 {
             MoveResult::Success(String::from("Throwing 3x6 means you have to wait a round."))
         }
@@ -271,16 +322,15 @@ impl Game {
             }
         }
 
-        // if dice_value > 6 {
-            // means player threw several time (with bonus throws) and wants to move his piece
-            // do we need to check if any 'landing' positions are blocked by our pieces or do we simply
-            //   check the end position?
-            // e.g. we are at X=20, we throw 6 + 3 (bonus throw), end position = 29...
-            //      do we also 'land' on position 20+6 ?
-            //      if so, we have to check whether we should remove opponent's pieces / if we get blocked
-            //        by our own pieces - IMO I would just ignore it, and simply check the end position,
-            //        which is done correctly in the code below
-        // }
+        // we are trying to moving piece from
+        if home_column {
+            return self.execute_move_from_home(position, dice_value)
+        }
+
+        if self.can_reach_finish(position, dice_value) {
+            self.jump_to_finish(position);
+            return MoveResult::Success(String::from("Jumped to finish!"))
+        }
 
         match self.can_reach_home(position, dice_value) {
             true => {

@@ -35,9 +35,12 @@ pub async fn post_game(data: web::Data<WebAppData>) -> HttpResponse {
     players: vec![Player {
       color: Color::Red,
       pawns_at_start: 4,
+      pawns_at_finish: 0,
       player_id: "mock_player_id".to_string(),
       home: vec![None, None, None, None],
+      is_bot: false
     }],
+    current_player: Color::Yellow
   };
 
   let res = game_collection.insert_one(mock_game, None).await;
