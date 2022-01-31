@@ -1,6 +1,6 @@
-use gloo::timers::callback::Interval;
 use yew::prelude::*;
 use yew_router::prelude::*;
+use gloo::timers::callback::Interval;
 
 use crate::components::button::Button;
 use crate::components::card::Card;
@@ -10,15 +10,28 @@ use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
 use crate::routes::Route;
 
-#[function_component(GameSetup)]
-pub fn game_setup() -> Html {
+#[derive(Properties, PartialEq, Clone)]
+pub struct GameLobbyProps {
+  pub id: String,
+}
+
+#[function_component(GameLobby)]
+pub fn game_lobby(props: &GameLobbyProps) -> Html {
+  let GameLobbyProps { id } = props.clone();
   let history = use_history().unwrap();
   let seconds = use_state(|| 0);
-  let noop = Callback::from(|_| {});
 
-  let redirect_to_game = Callback::from(move |_| {
-    history.push(Route::Game);
+  let redirect_to_game = {
+    let history = history.clone();
+    Callback::from(move |_| {
+      history.push(Route::Game { id: "mock_id".into() } );
+    })
+  };
+
+  let redirect_to_home = Callback::from(move |_| {
+    history.push(Route::Home);
   });
+
 
   {
     let seconds = seconds.clone();
@@ -33,6 +46,10 @@ pub fn game_setup() -> Html {
 
   let start_icon = html! {
     <Icon class="fas fa-play"/>
+  };
+
+  let leave_icon = html! {
+    <Icon class="fas fa-sign-out-alt"/>
   };
 
   let players_item = html! {
@@ -54,13 +71,11 @@ pub fn game_setup() -> Html {
       </div>
       <Card class="w-full px-8 py-14 lg:px-40">
         <p class="text-xl text-neutral-600 font-bold">{"Share the link with your friends and start the game"}</p>
-        <div class="flex items-center gap-3">
-        <div class="flex-grow"><CopyBar content="Clipboard example" /></div>
-        <div><Button onclick={noop.clone()}>{"Generate new link"}</Button></div>
-        </div>
+        <CopyBar content={ format!("localhost:3000/game/{}/lobby", id) } />
         <div class="flex items-center gap-3 text-neutral-600 mt-16">
           <Icon class="fas fa-info-circle" />
-          <p class="text-xl font-bold">{"Starting the game without all 4 players will fill the remaining spots with bots"}</p>
+          <p class="text-xl font-bold">{"Starting the game without all 4 players will fill the remaining spots with
+            bots"}</p>
         </div>
         <div class="flex flex-col gap-3">
           <OutlinedItem label="Players connected" item={players_item} />
@@ -69,7 +84,10 @@ pub fn game_setup() -> Html {
         <div class="w-full flex justify-end">
           <span>{"Waiting for other players to join"}</span>
         </div>
-        <Button class="w-full mt-16" onclick={redirect_to_game} icon={start_icon}>{"Start the game!"}</Button>
+        <div class="flex items-center gap-3 mt-16">
+          <Button class="w-full" onclick={redirect_to_game} icon={start_icon}>{"Start the game!"}</Button>
+          <Button class="w-full bg-red-700" onclick={redirect_to_home} icon={leave_icon}>{"Leave the lobby"}</Button>
+        </div>
       </Card>
     </Content>
   }

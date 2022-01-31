@@ -3,9 +3,14 @@ use yew::prelude::*;
 use crate::components::board::Board;
 use crate::components::player::{Player, PlayerButtonPosition};
 
-#[function_component(Game)]
-pub fn game() -> Html {
+#[derive(Properties, PartialEq, Clone)]
+pub struct GameProps {
+  pub id: String,
+}
 
+#[function_component(Game)]
+pub fn game(props: &GameProps) -> Html {
+  let GameProps { id } = props.clone();
   let noop = Callback::from(|_| {});
 
   html! {
