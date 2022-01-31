@@ -19,6 +19,8 @@ pub struct Game {
 }
 
 
+const PROMOTE_PIECE: usize = 100;
+
 impl Game {
     pub fn new(player_names: Vec<String>) -> Self {
         Game{
@@ -140,21 +142,23 @@ impl Game {
 
     pub fn remove_players_piece(&mut self, color: Color) {
         let mut player = self.get_player_mut(color);
-        player.return_piece_to_start();
+        player.increase_pieces_at_start();
     }
 
     // add check for player.pawns_at_start > 0 ?
     // can jump to starting position
-    /// check if starting position is empty
-    pub fn is_start_empty(&self) -> bool {
-        self.is_available_field(self.get_starting_position())
+    /// check if position where promoted piece would land is not occupied by our piece
+    pub fn can_promote_piece(&self, dice_value: usize) -> bool {
+        self.is_available_field(self.get_starting_position() + dice_value - 6)
     }
 
-    pub fn promote_piece(&mut self) {
-        let position = self.get_starting_position();
+    pub fn promote_piece(&mut self, dice_value: usize) {
+        let mut position = self.get_starting_position();
+        self.clear_field(position);
+        position += dice_value - 6;
         self.clear_field(position);
         let mut player = self.get_player_mut(self.current_player);
-        player.promote_piece();
+        player.decrease_pieces_at_start();
         self.fields[position] = Some(self.current_player)
     }
 
@@ -325,14 +329,11 @@ impl Game {
         }
 
         //TODO we need to get message if player wants to promote his piece (how?)
-        if position == 100 {
-            if dice_value < 6 {
-                return MoveResult::Error(String::from("We can't promote - did not roll 6."));
-            }
-            match self.is_start_empty() {
+        if position == PROMOTE_PIECE {
+            match self.can_promote_piece(dice_value) {
                 false => return MoveResult::Error(String::from("We can't promote - starting field is occupied by our piece.")),
                 true => {
-                    self.promote_piece();
+                    self.promote_piece(dice_value);
                     return MoveResult::Success(String::from("Your piece has been promoted!"));
                 }
             }

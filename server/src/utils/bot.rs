@@ -41,8 +41,8 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     }
 
     // prioritize moving other pieces to promoting new one if bot has more pieces in game
-    if player.pawns_at_start - player.pawns_at_finish < 2 && dice_value > 6 && game.is_start_empty() {
-        game.promote_piece();
+    if player.pawns_at_start - player.pawns_at_finish < 2 && dice_value > 6 && game.can_promote_piece(dice_value) {
+        game.promote_piece(dice_value);
         return MoveResult::Success(String::from("Piece promoted."))
     }
 
@@ -58,8 +58,8 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
         return game.execute_move(piece_positions_to_remove_enemy[0], dice_value, false);
     }
 
-    if dice_value > 6 && game.is_start_empty() {
-        game.promote_piece();
+    if dice_value > 6 && game.can_promote_piece(dice_value) {
+        game.promote_piece(dice_value);
         return MoveResult::Success(String::from("Piece promoted."));
     }
 
@@ -73,6 +73,8 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     if !piece_positions_to_move.is_empty() {
         return game.execute_move(*piece_positions_to_move.last().unwrap(), dice_value, false);
     }
+
+    //TODO add method to check if piece can promote to finish
 
     let piece_positions_in_home_row: Vec<usize> = player.home
         .clone()

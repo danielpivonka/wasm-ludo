@@ -40,11 +40,11 @@ impl Player {
 
     }
 
-    pub fn return_piece_to_start(&mut self) {
+    pub fn increase_pieces_at_start(&mut self) {
         self.pawns_at_start += 1
     }
 
-    pub fn promote_piece(&mut self) {
+    pub fn decrease_pieces_at_start(&mut self) {
         self.pawns_at_start -= 1
     }
 }
