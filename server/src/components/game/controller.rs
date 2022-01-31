@@ -1,10 +1,7 @@
 use actix_web::{get, post, web, HttpResponse};
 use futures::stream::TryStreamExt;
 
-use crate::{
-  models::{game::Game},
-  types::WebAppData,
-};
+use crate::{models::game::Game, types::WebAppData};
 
 #[get("")]
 pub async fn get_games(data: web::Data<WebAppData>) -> HttpResponse {
