@@ -24,7 +24,7 @@ pub fn button(props: &ButtonProps) -> Html {
   } = props.clone();
 
   html! {
-    <button {onclick} {disabled} class={classes!(String::from("rounded bg-primary-600 hover:bg-primary-700 text-white
+    <button {onclick} {disabled} class={classes!(String::from("rounded bg-primary-600 hover:brightness-90 text-white
       p-3 shadow-md font-semibold flex justify-center items-center gap-4"), disabled.then(|| "bg-neutral-600" ), class)}
     >
       { icon }

@@ -1,16 +1,19 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::pages::game_setup::GameSetup;
+use crate::pages::game_lobby::GameLobby;
 use crate::pages::not_found::NotFound;
 use crate::pages::game::Game;
+use crate::pages::home::Home;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
   #[at("/")]
-  GameSetup,
-  #[at("/game")]
-  Game,
+  Home,
+  #[at("/game/:id/lobby")]
+  GameLobby { id: String },
+  #[at("/game/:id")]
+  Game { id: String },
   #[not_found]
   #[at("/404")]
   NotFound,
@@ -18,8 +21,9 @@ pub enum Route {
 
 fn switch(routes: &Route) -> Html {
   match routes {
-    Route::GameSetup => html! {<GameSetup />},
-    Route::Game => html! {<Game />},
+    Route::Home => html! {<Home />},
+    Route::GameLobby { id } => html! {<GameLobby id={ id.clone() } />},
+    Route::Game { id } => html! {<Game id={ id.clone() } />},
     Route::NotFound => html! {<NotFound />},
   }
 }
