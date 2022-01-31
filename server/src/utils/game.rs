@@ -6,7 +6,7 @@ use crate::models::player::Player;
 use crate::models::color::Color;
 
 pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
-    let mut colors = vec![Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
+    let mut colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
     let mut players = vec![];
     for name in player_names {
         players.push(Player::new(name, *colors.next().unwrap(), false))
@@ -28,21 +28,21 @@ pub fn play_round() {
         ]
     ); // TODO replace with find_game(id); (from DB)
 
-    let mut player = game.get_current_player_mut();
+    let player = game.get_current_player_mut();
 
     let move_result = match player.is_bot {
-        true => make_a_move_bot(&mut game, &mut player),
-        false => make_a_move_player(&mut game, &mut player)
+        true => make_a_move_bot(&mut game),
+        false => make_a_move_player(&mut game)
     };
 
     match move_result {
-        MoveResult::Success(msg) => {
+        MoveResult::Success(_) => {
             game.update_current_player();
             // <<update db>> since field(s) have changed (at least current_player has changed,
             //    even if player's move was skipped)
             // send message to client(s) ?
         },
-        MoveResult::Error(msg) => {
+        MoveResult::Error(_) => {
             // <<move was invalid>> - we dont need to update db?
             // inform player/client(s) about error ?
         }

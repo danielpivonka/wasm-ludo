@@ -4,6 +4,8 @@ use crate::types::Field;
 
 use super::color::Color;
 
+const PIECES_COUNT: usize = 4;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     pub player_id: String,
@@ -21,17 +23,11 @@ impl Player {
         Player {
             player_id: name,
             color,
-            pawns_at_start: 4,
+            pawns_at_start: PIECES_COUNT,
             pawns_at_finish: 0,
             home: vec![None; 5],
             is_bot,
         }
-    }
-
-    // number of player's figures
-    // TODO make this constant
-    pub fn pieces_count(&self) -> usize {
-        4
     }
 
     // returns whether all player's pieces are in home (occupy fields of home)
@@ -40,7 +36,7 @@ impl Player {
         // let occupied_fields: Vec<Field> = self.home.iter().filter(|&field| field.is_some()).collect();
         // occupied_fields.len() >= self.pieces_count()
 
-        self.pawns_at_finish == self.pieces_count()
+        self.pawns_at_finish == PIECES_COUNT
 
     }
 
