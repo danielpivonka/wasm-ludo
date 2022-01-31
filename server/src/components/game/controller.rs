@@ -2,7 +2,7 @@ use actix_web::{get, post, web, HttpResponse};
 use futures::stream::TryStreamExt;
 
 use crate::{
-  models::{color::Color, game::Game, player::Player},
+  models::{game::Game},
   types::WebAppData,
 };
 
@@ -26,22 +26,7 @@ pub async fn post_game(data: web::Data<WebAppData>) -> HttpResponse {
   let db = &data.lock().await.db;
   let game_collection = db.collection::<Game>("games");
 
-  // just a mocked game, TODO: create new method for struct Game
-  let mock_game = Game {
-    id: "mock_game_id".to_string(),
-    started_at: mongodb::bson::DateTime::now(),
-    finished_at: None,
-    fields: vec![Some(Color::Red), None],
-    players: vec![Player {
-      color: Color::Red,
-      pawns_at_start: 4,
-      pawns_at_finish: 0,
-      player_id: "mock_player_id".to_string(),
-      home: vec![None, None, None, None],
-      is_bot: false
-    }],
-    current_player: Color::Yellow
-  };
+  let mock_game = Game::new(vec!["John".to_string()]);
 
   let res = game_collection.insert_one(mock_game, None).await;
 

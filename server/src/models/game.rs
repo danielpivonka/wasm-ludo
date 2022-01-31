@@ -6,7 +6,6 @@ use crate::types::Field;
 use crate::utils::enums::MoveResult;
 
 use super::player::Player;
-use crate::utils::bot::create_bot_name;
 use crate::utils::game::initialize_players;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -24,7 +23,7 @@ impl Game {
     pub fn new(player_names: Vec<String>) -> Self {
         Game{
             id: "".to_string(), // TODO
-            started_at: DateTime::now(),
+            started_at: mongodb::bson::DateTime::now(),
             finished_at: None,
             fields: vec![None; 48], // TODO check if this number is correct
             players: initialize_players(player_names),
@@ -98,8 +97,8 @@ impl Game {
         self.fields
             .iter()
             .enumerate()
-            .filter(|&(position, field)| self.is_occupied_by(field, color))
-            .map(|&(position, field)| position)
+            .filter(|&(_position, field)| self.is_occupied_by(field, color))
+            .map(|(position, _field)| position)
             .collect()
     }
 
@@ -111,18 +110,7 @@ impl Game {
     }
 
     pub fn is_in_bounds(&self, position: usize) -> bool {
-        position >= 0 && position < self.fields.len()
-    }
-
-    pub fn get_field(&self, position: usize) -> &Field {
-        // match self.fields.get(position) {
-        //     None => None,
-        //     Some(field) => field
-        // }
-        match self.is_in_bounds(position) {
-            true => &self.fields[position],
-            false => None
-        }
+        position < self.fields.len()
     }
 
     // there is a clock-wise ordering: Yellow, Blue, Red, Green
@@ -144,7 +132,7 @@ impl Game {
 
     // if we land on opponent at 'position', we remove his piece (we can't jump on our own piece)
     pub fn clear_field(&mut self, position: usize) {
-        match self.get_field(position) {
+        match &self.fields[position] {
             None => (),
             Some(color) => self.remove_players_piece(*color)
         }
@@ -197,7 +185,7 @@ impl Game {
     }
 
     pub fn is_in_bounds_home(&self, home_offset: usize) -> bool {
-        home_offset >= 0 && home_offset < self.get_home_size()
+        home_offset < self.get_home_size()
     }
 
     pub fn is_available_home_field(&self, home_offset: usize) -> bool {
@@ -235,8 +223,9 @@ impl Game {
     //    the correct field
     pub fn jump_home(&mut self, old_position: usize, home_offset: usize) {
         self.fields[old_position] = None;
+        let color = self.current_player;
         let mut home = self.get_home_mut();
-        home[home_offset] = Some(self.current_player)
+        home[home_offset] = Some(color);
     }
 
     // if we move 'dice_value' fields, we will reach beyond the main board/field
@@ -295,9 +284,10 @@ impl Game {
     }
 
     pub fn jump_from_home(&mut self, old_home_offset: usize, new_home_offset: usize) {
+        let color = self.current_player;
         let home = self.get_home_mut();
         home[old_home_offset] = None;
-        home[new_home_offset] = Some(self.current_player)
+        home[new_home_offset] = Some(color)
     }
 
     // when we are trying to move piece in home column (1 out of 5 home fields)
@@ -404,7 +394,7 @@ impl Game {
     pub fn is_opponents_piece(&self, position: usize) -> bool {
         match self.fields.get(position) {
             Some(field) => match field {
-                Some(color) => color != self.current_player,
+                Some(color) => color != &self.current_player,
                 None => false
             }
             None => false
@@ -414,7 +404,7 @@ impl Game {
     pub fn is_current_players_piece(&self, position: usize) -> bool {
         match self.fields.get(position) {
             Some(field) => match field {
-                Some(color) => color == self.current_player,
+                Some(color) => color == &self.current_player,
                 None => false
             }
             None => false
@@ -437,7 +427,7 @@ impl Game {
     }
 
     pub fn get_player_mut(&mut self, player_color: Color) -> &mut Player {
-       self.players.iter_mut().filter(|&player| player.color == player_color).next().unwrap()
+       self.players.iter_mut().filter(|player| player.color == player_color).next().unwrap()
     }
 
     pub fn get_current_player(&self) -> &Player {
@@ -448,12 +438,16 @@ impl Game {
         self.get_player_mut(self.current_player)
     }
 
-    pub fn is_player_AI(&self, player_color: Color) -> bool {
-        let bots: Vec<Color> = self.players.iter().filter(|&player| player.is_bot).collect();
+    pub fn is_player_ai(&self, player_color: Color) -> bool {
+        let bots: Vec<Color> = self.players
+            .iter()
+            .filter(|&player| player.is_bot)
+            .map(|player| player.color)
+            .collect();
         bots.contains(&player_color)
     }
 
-    pub fn is_current_player_AI(&self) -> bool {
-        self.is_player_AI(self.current_player)
+    pub fn is_current_player_ai(&self) -> bool {
+        self.is_player_ai(self.current_player)
     }
 }

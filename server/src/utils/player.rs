@@ -1,5 +1,4 @@
 use crate::models::game::Game;
-use crate::models::player::Player;
 use crate::utils::dice::throw_dice;
 use crate::utils::enums::MoveResult;
 
@@ -11,7 +10,7 @@ use crate::utils::enums::MoveResult;
 // idealne by client/player hned vedel, ze hrac nemoze tiahnut figurkou - teoreticky by
 //    od clienta mohla prist poziadavka GetValidPositions - pozicie figuriek, s ktorymi moze
 //    hrac tiahnut, a server ich posle na clienta (alebo message NoValidPositions)
-pub fn make_a_move_player(game: &mut Game, player: &mut Player) -> MoveResult {
+pub fn make_a_move_player(game: &mut Game) -> MoveResult {
     let dice_value = throw_dice(); // TODO await
     let position: usize = 0; // TODO await message_from_client/player(); promote new piece = position 100
     game.execute_move(position, dice_value, false) // TODO set home column
