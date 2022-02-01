@@ -31,6 +31,12 @@ pub enum ServerMessage {
   Error(String),
 }
 
+
+// TODO: make MoveResult more detailed - instead of just Success/Error:
+// PiecePromoted, PieceFinished, ...
+// (MoveBlocked / MoveSkipped / ... depends on whether this is checked in FE -
+//   server provides precomputed positions of player's pieces which can be moved)
+//
 pub enum MoveResult {
   Winner(Color),
   Success(String),

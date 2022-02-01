@@ -152,9 +152,11 @@ impl Game {
     self.is_available_field(self.get_starting_position() + dice_value - 6)
   }
 
+  // TODO: should we remove opponent on starting position when promoting a piece?
+  //  probably just skip as with other 'multi-hops' ? currently it's being removed
   pub fn promote_piece(&mut self, dice_value: usize) {
     let mut position = self.get_starting_position();
-    self.clear_field(position);
+    // self.clear_field(position);
     position += dice_value - 6;
     self.clear_field(position);
     let player = self.get_player_mut(self.current_player);
@@ -453,4 +455,206 @@ impl Game {
   pub fn is_current_player_ai(&self) -> bool {
     self.is_player_ai(self.current_player)
   }
+}
+
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn get_random_players() -> Vec<String> {
+    vec![
+      String::from("Yellow"),
+      String::from("Blue"),
+      String::from("Red"),
+      String::from("Green")
+    ]
+  }
+
+  fn get_empty_game() -> Game {
+    Game::new(get_random_players())
+  }
+
+  fn get_colors() -> Vec<Color> {
+    vec![
+      Color::Yellow,
+      Color::Blue,
+      Color::Red,
+      Color::Green
+    ]
+  }
+
+  fn get_all_players(game: &Game) -> Vec<&Player> {
+    get_colors()
+        .iter()
+        .map(|color| game.get_player(*color))
+        .collect::<Vec<&Player>>()
+  }
+
+  fn is_empty_fields(fields: &Vec<Field>) -> bool {
+    fields.iter().all(|field| field.is_none())
+  }
+
+  fn empty_fields_count(fields: &Vec<Field>) -> usize {
+    fields
+        .iter()
+        .filter(|&field| field.is_none())
+        .collect::<Vec<&Field>>()
+        .len()
+  }
+
+  fn is_empty_field(fields: &Vec<Field>, position: usize) -> bool {
+    fields[position].is_none()
+  }
+
+  fn is_occupied_field_by(fields: &Vec<Field>, position: usize, color: Color) -> bool {
+    match fields[position] {
+      None => false,
+      Some(_color) => _color == color
+    }
+  }
+
+  fn set_field(fields: &mut Vec<Field>, position: usize, field: Field) {
+    fields[position] = field
+  }
+
+  #[test]
+  fn promote() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    for player in get_all_players(&game) {
+      assert_eq!(player.pawns_at_start, 4);
+      assert_eq!(player.pawns_at_finish, 0);
+      assert!(is_empty_fields(&player.home));
+    }
+
+    // the starting player is Yellow
+    assert_eq!(game.current_player, Color::Yellow);
+    assert!(is_empty_fields(&game.fields));
+    assert_eq!(game.get_starting_position(), 8);  // Yellow player starts at 8
+
+    let dice_value = 9;
+    let position = PROMOTE_PIECE;
+    let home_column = false;
+
+    match game.execute_move(position, dice_value, home_column) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    assert!(is_empty_field(&game.fields, game.get_starting_position()));
+    assert!(is_occupied_field_by(&game.fields, game.get_starting_position() + 3, Color::Yellow));
+    assert!(is_occupied_field_by(&game.fields, 11, Color::Yellow));
+    assert!(!(is_empty_fields(&game.fields)));
+    assert_eq!(game.get_current_player().pawns_at_start, 3);
+
+    game.update_current_player();
+
+    assert_eq!(game.current_player, Color::Blue)
+  }
+
+  #[test]
+  fn blocked_promotion() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    assert_eq!(game.get_starting_position(), 8);
+    set_field(&mut game.fields, 8 + 3, Some(Color::Yellow));
+    assert_eq!(empty_fields_count(&game.fields), game.field_size() - 1);
+
+    match game.execute_move(PROMOTE_PIECE, 6 + 3, false) {
+      MoveResult::Error(_) => assert!(true),
+      MoveResult::Success(_) => assert!(false)
+    }
+
+    assert_eq!(game.get_current_player().pawns_at_start, 4);
+    assert!(is_empty_field(&game.fields, 8));
+    assert!(is_occupied_field_by(&game.fields, 8 + 3, Color::Yellow));
+    assert_eq!(empty_fields_count(&game.fields), game.field_size() - 1);
+  }
+
+  #[test]
+  fn promotion_remove_opponent() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    let dice_value = 6 + 8;
+    let opponent_color = Color::Green;
+    let fields = &game.fields;
+    let starting_pos = game.get_starting_position();
+    let field_size = fields.len();
+
+    game.fields[starting_pos + dice_value - 6] = Some(opponent_color);
+
+    // set_field(&mut game.fields, starting_pos + dice_value - 6, Some(opponent_color));
+    let mut opponent = game.get_player_mut(opponent_color);
+    opponent.pawns_at_start = 3;
+
+    match game.execute_move(PROMOTE_PIECE, dice_value, false) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    assert_eq!(game.get_current_player().pawns_at_start, 3);
+    assert_eq!(opponent.pawns_at_start, 4);
+    assert!(is_empty_field(fields, 8));
+    assert!(is_occupied_field_by(fields, 8 + 3, Color::Yellow));
+    assert_eq!(empty_fields_count(fields), field_size - 1);
+
+  }
+
+  #[test]
+  fn blocked_move() {
+
+  }
+
+  // TODO: should we remove opponent on starting position when promoting a piece?
+  //  probably just skip as with other 'multi-hops' ? currently it's being removed
+
+  #[test]
+  fn remove_opponent() {
+
+  }
+
+  #[test]
+  fn move_board_to_home() {
+
+  }
+
+  #[test]
+  fn move_board_to_home_blocked() {
+
+  }
+
+  #[test]
+  fn move_home_to_home() {
+
+  }
+
+  #[test]
+  fn move_home_to_home_blocked() {
+
+  }
+
+  #[test]
+  fn move_board_to_finish() {
+
+  }
+
+  #[test]
+  fn move_home_to_finish() {
+
+  }
+
+  #[test]
+  fn move_to_finish_check_winner() {
+
+  }
+
+  #[test]
+  fn invalid_moves() {
+
+  }
+
 }
