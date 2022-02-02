@@ -1,9 +1,12 @@
+use actix::Actor;
+use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
+use components::game::game_server::GameServer;
 use dotenv::dotenv;
 use env_logger::Env;
 use mongodb::{options::ClientOptions, Client};
 use std::env;
-use tokio::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 mod components;
 mod models;
@@ -23,13 +26,23 @@ async fn main() -> anyhow::Result<()> {
   client_options.app_name = Some("Ludo".to_string());
 
   let client = Client::with_options(client_options)?;
+  let db = Arc::new(Mutex::new(client.database("main")));
 
-  let app_data = web::Data::new(Mutex::new(AppData {
-    db: client.database("main"),
-  }));
+  let game_server_addr = GameServer::new(db.clone()).start();
+
+  let app_data = web::Data::new(AppData {
+    game_server_addr,
+    db: db.clone(),
+  });
 
   HttpServer::new(move || {
     App::new()
+      .wrap(
+        Cors::default()
+          .allow_any_header()
+          .allow_any_origin()
+          .allow_any_method(),
+      )
       .app_data(app_data.clone())
       .wrap(middleware::Logger::default())
       .configure(components::info::routes::attach_routes)

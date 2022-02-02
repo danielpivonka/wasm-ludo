@@ -9,6 +9,10 @@ edition = "2018"
 yew = "0.19.3"
 yew-router = "0.16"
 wasm-bindgen = "0.2.78"
+wasm-bindgen-futures = "0.4.29"
+web-sys = "0.3.56"
+reqwasm = { version = "0.4.0", features = ["json"] }
+futures = "0.3.19"
 gloo = "0.6.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 stylist = { version = "0.10.0", features = ["yew_integration"] }

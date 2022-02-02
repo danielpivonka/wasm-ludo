@@ -9,10 +9,16 @@ pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
   let mut colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
   let mut players = vec![];
   for name in player_names {
-    players.push(Player::new(name, *colors.next().unwrap(), false))
+    players.push(Player::new(
+      "0".to_string(),
+      name,
+      *colors.next().unwrap(),
+      false,
+    ))
   }
   while players.len() < 4 {
     players.push(Player::new(
+      "0".to_string(),
       create_bot_name(),
       *colors.next().unwrap(),
       true,
@@ -22,12 +28,7 @@ pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
 }
 
 pub fn play_round() {
-  let mut game = Game::new(vec![
-    "John".to_string(),
-    "Josh".to_string(),
-    "James".to_string(),
-    "Jack".to_string(),
-  ]); // TODO replace with find_game(id); (from DB)
+  let mut game = Game::new(); // TODO replace with find_game(id); (from DB)
 
   let player = game.get_current_player_mut();
 

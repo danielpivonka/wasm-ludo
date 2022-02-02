@@ -7,3 +7,9 @@ pub enum Color {
   Blue,
   Yellow,
 }
+
+impl Color {
+  pub fn ordered() -> Vec<Color> {
+    vec![Color::Green, Color::Yellow, Color::Blue, Color::Red]
+  }
+}

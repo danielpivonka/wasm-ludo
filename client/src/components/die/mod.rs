@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
-use gloo::timers::callback::Timeout;
 use crate::components::icon::Icon;
+use gloo::timers::callback::Timeout;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct DieProps {
@@ -12,7 +12,9 @@ const SPIN_TIME: u32 = 1000;
 
 #[function_component(Die)]
 pub fn die(props: &DieProps) -> Html {
-  let DieProps {number: prop_number} = props.clone();
+  let DieProps {
+    number: prop_number,
+  } = props.clone();
   let number = use_state(|| prop_number);
   let spinning = use_state(|| false);
   let is_mount = use_mut_ref(|| true);
@@ -20,27 +22,30 @@ pub fn die(props: &DieProps) -> Html {
   {
     let spinning = spinning.clone();
     let number = number.clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(move |_| {
-      if *is_mount.borrow() {
-        *is_mount.borrow_mut() = false;
-        return Box::new(|| {});
-      };
+    use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(
+      move |_| {
+        if *is_mount.borrow() {
+          *is_mount.borrow_mut() = false;
+          return Box::new(|| {});
+        };
 
-      spinning.set(true);
-      
-      let number_change_timeout = Timeout::new(SPIN_TIME / 2, move || {
-        number.set(prop_number);
-      });
+        spinning.set(true);
 
-      let spin_timeout = Timeout::new(SPIN_TIME, move || {
-        spinning.set(false);
-      });
+        let number_change_timeout = Timeout::new(SPIN_TIME / 2, move || {
+          number.set(prop_number);
+        });
 
-      Box::new(move || {
-        drop(number_change_timeout);
-        drop(spin_timeout);
-      })
-    }, [prop_number]);
+        let spin_timeout = Timeout::new(SPIN_TIME, move || {
+          spinning.set(false);
+        });
+
+        Box::new(move || {
+          drop(number_change_timeout);
+          drop(spin_timeout);
+        })
+      },
+      [prop_number],
+    );
   }
 
   let classes: String = match *number {

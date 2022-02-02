@@ -1,16 +1,15 @@
 use yew::prelude::*;
 
+use crate::components::board_middle::BoardMiddle;
+use crate::components::fields::{Fields, FieldsPosition};
 use crate::components::player_corner::PlayerCorner;
 use crate::models::color::Color;
-use crate::components::fields::{Fields, FieldsPosition};
-use crate::components::board_middle::BoardMiddle;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct BoardProps {}
 
 #[function_component(Board)]
 pub fn board(props: &BoardProps) -> Html {
-
   let fields = vec![None; 18];
 
   html! {

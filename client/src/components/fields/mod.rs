@@ -1,12 +1,12 @@
+use std::array::IntoIter;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use std::array::IntoIter;
 
 use yew::prelude::*;
 
-use crate::models::color::Color;
 use crate::components::field::Field;
 use crate::components::icon::Icon;
+use crate::models::color::Color;
 use crate::types::FieldType;
 
 #[derive(PartialEq, Clone)]
@@ -24,11 +24,14 @@ pub struct FieldsProps {
   pub fields: Vec<FieldType>,
 }
 
-
 #[function_component(Fields)]
 pub fn fields(props: &FieldsProps) -> Html {
-  let FieldsProps {color, position, fields} = props.clone();
-  
+  let FieldsProps {
+    color,
+    position,
+    fields,
+  } = props.clone();
+
   let left_position_map: HashMap<usize, usize> = HashMap::from_iter(IntoIter::new([
     (17, 0),
     (16, 1),
@@ -99,7 +102,7 @@ pub fn fields(props: &FieldsProps) -> Html {
     FieldsPosition::Bottom => (bottom_position_map, "fas fa-long-arrow-alt-up".into()),
     FieldsPosition::Left => (left_position_map, "fas fa-long-arrow-alt-right".into()),
   };
-  
+
   let classes: String = match position {
     FieldsPosition::Top | FieldsPosition::Bottom => "grid-cols-3 grid-rows-6".into(),
     FieldsPosition::Right | FieldsPosition::Left => "grid-cols-6 grid-rows-3".into(),
@@ -111,8 +114,8 @@ pub fn fields(props: &FieldsProps) -> Html {
         fields.iter().enumerate().map(|(index, field)| {
           {
             if let Some(position) = map.get(&index) {
-              html! { 
-                <Field 
+              html! {
+                <Field
                   color={color.clone()}
                   color_background={*position == 8}
                 >

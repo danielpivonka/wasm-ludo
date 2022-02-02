@@ -17,4 +17,3 @@ pub fn resolve_text_color_class(color: &Color) -> String {
     Color::Yellow => "text-yellow-400".into(),
   }
 }
-

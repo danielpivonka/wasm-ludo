@@ -2,9 +2,9 @@ use yew::{function_component, html};
 
 mod bindings;
 mod components;
+mod models;
 mod pages;
 mod routes;
-mod models;
 mod types;
 mod utils;
 

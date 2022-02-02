@@ -6,9 +6,10 @@ use super::color::Color;
 
 const PIECES_COUNT: usize = 4;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Player {
   pub id: String,
+  pub name: String,
   pub color: Color,
   pub pawns_at_start: usize,
   pub pawns_at_finish: usize,
@@ -18,9 +19,10 @@ pub struct Player {
 
 // TODO change id to name when db is fixed
 impl Player {
-  pub fn new(name: String, color: Color, is_bot: bool) -> Self {
+  pub fn new(id: String, name: String, color: Color, is_bot: bool) -> Self {
     Player {
-      id: name,
+      id,
+      name,
       color,
       pawns_at_start: PIECES_COUNT,
       pawns_at_finish: 0,

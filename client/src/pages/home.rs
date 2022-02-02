@@ -1,9 +1,12 @@
+use gloo::dialogs::alert;
+use reqwasm::http::Request;
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::components::content::Content;
-use crate::components::card::Card;
 use crate::components::button::Button;
+use crate::components::card::Card;
+use crate::components::content::Content;
 use crate::components::icon::Icon;
 
 use crate::routes::Route;
@@ -14,7 +17,31 @@ pub struct HomeProps {}
 #[function_component(Home)]
 pub fn home(props: &HomeProps) -> Html {
   let history = use_history().unwrap();
-  let onclick = Callback::once(move |_| history.push(Route::GameLobby { id: "mock_id".into() }));
+
+  let onclick = Callback::from(move |_| {
+    let history = history.clone();
+    spawn_local(async move {
+      let res = Request::post("http://127.0.0.1:8080/games").send().await;
+
+      let resp = match res {
+        Ok(resp) => resp,
+        Err(_) => {
+          alert("something failed");
+          return;
+        }
+      };
+
+      let id = match resp.text().await {
+        Ok(id) => id,
+        Err(_) => {
+          alert("something failed");
+          return;
+        }
+      };
+
+      history.push(Route::GameJoin { id })
+    });
+  });
 
   let create_icon = html! {
     <Icon class={classes!(String::from("fas fa-gamepad"))}/>

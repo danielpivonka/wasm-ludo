@@ -1,0 +1,4 @@
+enum WebsocketMessage {
+  MakeMove,
+  
+}

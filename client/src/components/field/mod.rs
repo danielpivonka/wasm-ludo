@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
-use crate::utils::{resolve_bg_color_class, resolve_text_color_class};
 use crate::models::color::Color;
+use crate::utils::{resolve_bg_color_class, resolve_text_color_class};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct FieldProps {
@@ -14,7 +14,11 @@ pub struct FieldProps {
 
 #[function_component(Field)]
 pub fn field(props: &FieldProps) -> Html {
-  let FieldProps {children, color, color_background} = props.clone();
+  let FieldProps {
+    children,
+    color,
+    color_background,
+  } = props.clone();
 
   let bg_class = if color_background {
     resolve_bg_color_class(&color)
