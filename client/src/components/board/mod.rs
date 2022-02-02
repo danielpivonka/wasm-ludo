@@ -5,11 +5,8 @@ use crate::components::fields::{Fields, FieldsPosition};
 use crate::components::player_corner::PlayerCorner;
 use crate::models::color::Color;
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct BoardProps {}
-
 #[function_component(Board)]
-pub fn board(props: &BoardProps) -> Html {
+pub fn board() -> Html {
   let fields = vec![None; 18];
 
   html! {

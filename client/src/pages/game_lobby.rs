@@ -1,14 +1,7 @@
 // use futures::channel::oneshot::channel;
-use futures::channel::mpsc;
-use futures::{SinkExt, StreamExt};
+use futures::SinkExt;
 use gloo::console::log;
-use gloo::storage::{SessionStorage, Storage};
 use gloo::timers::callback::Interval;
-use reqwasm::http::Request;
-use reqwasm::websocket::{futures::WebSocket, Message};
-use serde::Deserialize;
-use std::rc;
-use std::sync::Arc;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -20,7 +13,7 @@ use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
 use crate::context::game_context::model::GameContext;
-use crate::models::messages::{ServerMessage, ClientMessage};
+use crate::models::messages::{ClientMessage, ServerMessage};
 use crate::routes::{GameRoute, MainRoute};
 
 #[derive(Properties, PartialEq, Clone)]
@@ -44,14 +37,16 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
     let player_count = player_count.clone();
     use_effect_with_deps(
       move |_: &[u32; 0]| {
-        subscribe.emit(Callback::from(move |message: ServerMessage| match message {
-          ServerMessage::PlayerCountChange(count) => player_count.set(count),
-          ServerMessage::GameStarted => {
-            history.push(GameRoute::Game { id: id.clone() });
+        subscribe.emit(Callback::from(
+          move |message: ServerMessage| match message {
+            ServerMessage::PlayerCountChange(count) => player_count.set(count),
+            ServerMessage::GameStarted => {
+              history.push(GameRoute::Game { id: id.clone() });
+            }
+            ServerMessage::Error(msg) => log!(msg),
+            _ => {}
           },
-          ServerMessage::Error(msg) => log!(msg),
-          _ => {}
-        }));
+        ));
 
         || {}
       },

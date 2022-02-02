@@ -1,4 +1,7 @@
-use crate::models::{game::Game, messages::{ServerMessage, ClientMessage}};
+use crate::models::{
+  game::Game,
+  messages::{ClientMessage, ServerMessage},
+};
 use futures::channel::mpsc::Sender;
 use yew::Callback;
 
@@ -14,11 +17,11 @@ pub struct GameContext {
 pub struct MsgSender(pub Sender<ClientMessage>);
 
 impl PartialEq for MsgSender {
-  fn eq(&self, other: &Self) -> bool {
+  fn eq(&self, _other: &Self) -> bool {
     true
   }
 
-  fn ne(&self, other: &Self) -> bool {
-    false
-  }
+  // fn ne(&self, _other: &Self) -> bool {
+  //   false
+  // }
 }

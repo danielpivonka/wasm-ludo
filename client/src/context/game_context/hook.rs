@@ -8,7 +8,7 @@ use yew::prelude::*;
 use gloo::console::log;
 use gloo::storage::{SessionStorage, Storage};
 
-use crate::models::messages::{ServerMessage, ClientMessage};
+use crate::models::messages::{ClientMessage, ServerMessage};
 
 use super::model::{GameContext, MsgSender};
 
@@ -25,7 +25,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   {
     let sender = sender.clone();
     let event_handler = event_handler.clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
       move |[callback]| {
         let callback = (**callback).clone();
         let callback = match callback {
@@ -34,7 +34,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
         };
         let player_id: String = SessionStorage::get("player_id").unwrap();
 
-        let mut ws = WebSocket::open(
+        let ws = WebSocket::open(
           format!(
             "ws://127.0.0.1:8080/games/websocket/{}/{}",
             game_id, player_id
@@ -72,9 +72,8 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   }
 
   let subscribe = {
-    let event_handler = event_handler.clone();
     Callback::from(move |function: Callback<ServerMessage>| {
-      event_handler.set(Some(function.clone()));
+      event_handler.set(Some(function));
     })
   };
 

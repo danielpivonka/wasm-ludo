@@ -111,7 +111,7 @@ pub fn fields(props: &FieldsProps) -> Html {
   html! {
     <div class={classes!(String::from("w-full h-full grid"), classes)}>
       {
-        fields.iter().enumerate().map(|(index, field)| {
+        fields.iter().enumerate().map(|(index, _field)| {
           {
             if let Some(position) = map.get(&index) {
               html! {

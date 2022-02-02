@@ -1,4 +1,3 @@
-use chrono::Local;
 use gloo::dialogs::alert;
 use gloo::{
   console::log,
@@ -9,7 +8,6 @@ use serde::Deserialize;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
-use yew::events::Event;
 use yew::prelude::*;
 use yew_router::history::History;
 use yew_router::hooks::use_history;
@@ -115,7 +113,7 @@ pub fn game_join(props: &GameJoinProps) -> Html {
       <Card class="w-full px-8 py-14 lg:px-40">
         <p class="text-3xl mb-8">{"Enter your nickname bellow"}</p>
         <TextInput value={(*nickname).clone()} label={"Nickname:".to_string()} {onchange} />
-        <Button class="w-full mt-8" {onclick} disabled={(*nickname).len() == 0}>{"Join the game!"}</Button>
+        <Button class="w-full mt-8" {onclick} disabled={(*nickname).is_empty()}>{"Join the game!"}</Button>
       </Card>
     </Content>
   }

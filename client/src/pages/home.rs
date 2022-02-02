@@ -11,11 +11,8 @@ use crate::components::icon::Icon;
 
 use crate::routes::MainRoute;
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct HomeProps {}
-
 #[function_component(Home)]
-pub fn home(props: &HomeProps) -> Html {
+pub fn home() -> Html {
   let history = use_history().unwrap();
 
   let onclick = Callback::from(move |_| {

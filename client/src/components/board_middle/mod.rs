@@ -1,11 +1,9 @@
 use stylist::{css, yew::styled_component};
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct BoardMiddleProps {}
 
 #[styled_component(BoardMiddle)]
-pub fn board_middle(props: &BoardMiddleProps) -> Html {
+pub fn board_middle() -> Html {
   html! {
     <div class="h-full w-full relative">
       <div class={classes!(String::from("absolute top-0 left-0 right-0 bg-blue-400 h-1/2 w-full"), css!("clip-path: polygon(0% 0%, 100% 0%, 50% 100%);"))} />
