@@ -18,7 +18,7 @@ use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::text_input::TextInput;
-use crate::routes::GameRoute;
+use crate::routes::Route;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct GameJoinProps {
@@ -98,7 +98,7 @@ pub fn game_join(props: &GameJoinProps) -> Html {
           return;
         };
 
-        history.push(GameRoute::GameLobby { id });
+        history.push(Route::GameLobby { id });
       });
     })
   };
