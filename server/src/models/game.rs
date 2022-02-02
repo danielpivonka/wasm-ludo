@@ -458,21 +458,21 @@ impl Game {
 }
 
 
+
+// ----------------[ tests ]-----------------
+
 #[cfg(test)]
 mod tests {
   use super::*;
 
-  fn get_random_players() -> Vec<String> {
-    vec![
-      String::from("Yellow"),
-      String::from("Blue"),
-      String::from("Red"),
-      String::from("Green")
-    ]
-  }
-
   fn get_empty_game() -> Game {
-    Game::new(get_random_players())
+    let mut game = Game::new();
+    let mut players = Vec::new();
+    for color in get_colors() {
+      players.push(Player::new("".into(), "".into(), color, false));
+    }
+    game.players = players;
+    game
   }
 
   fn get_colors() -> Vec<Color> {
@@ -547,6 +547,7 @@ mod tests {
     let home_column = false;
 
     match game.execute_move(position, dice_value, home_column) {
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Error(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
@@ -573,6 +574,7 @@ mod tests {
 
     match game.execute_move(PROMOTE_PIECE, 6 + 3, false) {
       MoveResult::Error(_) => assert!(true),
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(false)
     }
 
@@ -603,6 +605,7 @@ mod tests {
     let mut game = game.clone();
     match game.execute_move(PROMOTE_PIECE, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
 
@@ -647,6 +650,7 @@ mod tests {
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
 
@@ -668,6 +672,7 @@ mod tests {
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
 
@@ -681,47 +686,68 @@ mod tests {
   }
 
   #[test]
-  fn move_board_to_home() {
+  fn move_board_to_home_success() {
     let mut game = get_empty_game();
     game.current_player = Color::Yellow;
 
     let dice_value = 1;
     let starting_pos = 6;  // right in front of home
-    let field_size = game.fields.len();
-
     game.fields[starting_pos] = Some(game.current_player);
-    game.fields[starting_pos + dice_value] = Some(opponent_color);
-    game.fields[starting_pos + dice_value + 1] = Some(opponent_color);
-    game.fields[starting_pos + dice_value - 1] = Some(opponent_color);
-
-    let mut opponent = game.get_player_mut(opponent_color);
-    opponent.pawns_at_start = 1;
-
-    let mut opponent = game.get_current_player_mut();
-    opponent.pawns_at_start = 3;
-
-    print_game(&game);
 
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
 
-    print_game(&game);
-
-    assert_eq!(game.get_current_player().pawns_at_start, 3);
-    assert_eq!(game.get_player(opponent_color).pawns_at_start, 2);
+    let player = game.get_current_player();
     assert!(is_empty_field(&game.fields, starting_pos));
-    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value, Color::Yellow));
-    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value + 1, Color::Green));
-    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value - 1, Color::Green));
+    assert!(is_occupied_field_by(&player.home, 0, Color::Yellow));
+  }
 
+  #[test]
+  fn move_board_to_home_overjump() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    let dice_value = 9;
+    let starting_pos = 6;  // right in front of home
+    game.fields[starting_pos] = Some(game.current_player);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(true),
+      MoveResult::Winner(_) => assert!(false),
+      MoveResult::Success(_) => assert!(false)
+    }
+
+    let player = game.get_current_player();
+    assert!(is_occupied_field_by(&game.fields, starting_pos, Color::Yellow));
+    assert!(is_empty_fields(&player.home));
   }
 
   #[test]
   fn move_board_to_home_blocked() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
 
+    let dice_value = 1;
+    let starting_pos = 6;  // right in front of home
+    game.fields[starting_pos] = Some(game.current_player);
+    let mut player = game.get_current_player_mut();
+    player.home[0] = Some(Color::Yellow);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(true),
+      MoveResult::Winner(_) => assert!(false),
+      MoveResult::Success(_) => assert!(false)
+    }
+
+    let player = game.get_current_player();
+    assert!(is_occupied_field_by(&game.fields, starting_pos, Color::Yellow));
+    assert!(is_occupied_field_by(&player.home, 0, Color::Yellow));
   }
 
   #[test]
@@ -751,6 +777,23 @@ mod tests {
 
   #[test]
   fn invalid_moves() {
+
+  }
+
+  #[test]
+  fn available_positions() {
+    let mut game = get_empty_game();
+
+    // Yellow starts at position 8, the field in front of home is at position 6
+    game.fields[9] = Some(Color::Yellow);
+    game.fields[12] = Some(Color::Yellow);
+    game.fields[6] = Some(Color::Yellow);
+
+    let mut yellow_player = game.get_player_mut(Color::Yellow);
+    yellow_player.pawns_at_start = 1;
+    yellow_player.home[2] = Some(Color::Yellow);
+
+
 
   }
 

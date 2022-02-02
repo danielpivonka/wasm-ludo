@@ -9,10 +9,10 @@ pub fn make_a_move_player(game: &mut Game, position: usize, is_home: bool) -> Mo
 
 pub fn get_available_moves(
   game: &Game,
-  player: &Player,
   dice_value: usize,
 ) -> (Vec<usize>, Vec<usize>, bool) {
   let positions = game.get_players_pieces_positions(&game.current_player);
+  let player = game.get_current_player();
 
   let mut positions_on_board: Vec<usize> = positions
     .clone()
