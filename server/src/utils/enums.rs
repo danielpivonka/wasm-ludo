@@ -28,7 +28,7 @@ pub enum ServerMessage {
   PlayerCountChange(usize),
   GameOver(Color),  // winner of a game
   GameStarted,
-  Err,
+  Error(String),
 }
 
 pub enum MoveResult {

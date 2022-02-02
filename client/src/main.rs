@@ -2,12 +2,12 @@ use yew::{function_component, html};
 
 mod bindings;
 mod components;
+mod context;
 mod models;
 mod pages;
 mod routes;
 mod types;
 mod utils;
-// mod context;
 
 use routes::Routes;
 

@@ -9,7 +9,7 @@ use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
 
-use crate::routes::Route;
+use crate::routes::MainRoute;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct HomeProps {}
@@ -39,7 +39,7 @@ pub fn home(props: &HomeProps) -> Html {
         }
       };
 
-      history.push(Route::GameJoin { id })
+      history.push(MainRoute::GameJoin { id })
     });
   });
 

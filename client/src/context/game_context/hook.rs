@@ -1,67 +1,85 @@
-use futures::StreamExt;
-use reqwasm::websocket::Message;
+use futures::channel::mpsc;
+use futures::{SinkExt, StreamExt};
 use reqwasm::websocket::futures::WebSocket;
+use reqwasm::websocket::Message;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
-use gloo::storage::{SessionStorage, Storage};
 use gloo::console::log;
+use gloo::storage::{SessionStorage, Storage};
 
 use crate::models::messages::ServerMessage;
 
 use super::model::GameContext;
 
 #[derive(Properties, PartialEq, Clone)]
-pub struct UseGameProps {}
+pub struct UseGameProps {
+  pub game_id: String,
+}
 
 pub fn use_game(props: &UseGameProps) -> GameContext {
-  let game_context = use_state(|| GameContext { game: None, player_count: 0 });
+  let sender = use_state(|| None);
+  let game_id = props.game_id.clone();
+  let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
 
-  use_effect_with_deps(
-    move |_: &[u32; 0]| {
-      log!("use effect triggered");
-      let player_id: String = SessionStorage::get("player_id").unwrap();
-      // let res = Request::get(format!("ws://127.0.0.1:8080/games/websocket/{}/{}", id, player_id)).send().await;
+  {
+    let event_handler = event_handler.clone();
+    use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(
+      move |[callback]| {
+        let callback = (**callback).clone();
+        let callback = match callback {
+          Some(callback) => callback,
+          None => return Box::new(|| {}),
+        };
+        let player_id: String = SessionStorage::get("player_id").unwrap();
 
-      let mut ws = WebSocket::open(
-        format!("ws://127.0.0.1:8080/games/websocket/{}/{}", id, player_id).as_str(),
-      )
-      .unwrap();
-      let (mut write, mut read) = ws.split();
+        let mut ws = WebSocket::open(
+          format!(
+            "ws://127.0.0.1:8080/games/websocket/{}/{}",
+            game_id, player_id
+          )
+          .as_str(),
+        )
+        .unwrap();
 
-      spawn_local(async move {
-        // TODO: handle errors as well
-        while let Some(Ok(Message::Text(text))) = read.next().await {
-          if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
-            match message {
-              ServerMessage::DiceValue(_) => todo!(),
-              ServerMessage::SkipPlayer => todo!(),
-              ServerMessage::MoveSuccessful(_) => todo!(),
-              ServerMessage::MoveFailed(_) => todo!(),
-              ServerMessage::PiecePromoted => todo!(),
-              ServerMessage::Information(_) => todo!(),
-              ServerMessage::GameUpdate(_) => todo!(),
-              ServerMessage::PlayerConnected(_) => todo!(),
-              ServerMessage::PlayerDisconnected(_) => todo!(),
-              ServerMessage::PlayerJoined(players) => {
-                player_count.set(players);
-              }
-              ServerMessage::GameStarted => todo!(),
-            };
-            log!(format!("1. {:?}", message))
+        let (mut write, mut read) = ws.split();
+        let (tx, mut rx) = mpsc::channel::<ServerMessage>(1000);
+        sender.set(Some(tx));
+
+        spawn_local(async move {
+          // TODO: handle errors as well
+          while let Some(Ok(Message::Text(text))) = read.next().await {
+            if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
+              callback.emit(message.clone());
+              log!(format!("1. {:?}", message.clone()))
+            }
           }
-        }
-        log!("WebSocket Closed")
-      });
+          log!("WebSocket Closed")
+        });
 
-      spawn_local(async move {
-        write.send(Message::Text("hello".into())).await.unwrap();
-      });
+        spawn_local(async move {
+          while let Some(msg) = rx.next().await {
+            let json = serde_json::to_string(&msg).unwrap();
+            write.send(Message::Text(json)).await.unwrap();
+          }
+        });
 
-      || {}
-    },
-    [],
-  );
+        Box::new(|| {})
+      },
+      [event_handler],
+    );
+  }
 
-  (*game_context).clone()
+  let subscribe = {
+    let event_handler = event_handler.clone();
+    Callback::from(move |function: Callback<ServerMessage>| {
+      event_handler.set(Some(function.clone()));
+    })
+  };
+
+  GameContext {
+    game: None,
+    player_count: 0,
+    subscribe,
+  }
 }
