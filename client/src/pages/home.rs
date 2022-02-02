@@ -9,13 +9,10 @@ use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
 
-use crate::routes::Route;
-
-#[derive(Properties, PartialEq, Clone)]
-pub struct HomeProps {}
+use crate::routes::MainRoute;
 
 #[function_component(Home)]
-pub fn home(props: &HomeProps) -> Html {
+pub fn home() -> Html {
   let history = use_history().unwrap();
 
   let onclick = Callback::from(move |_| {
@@ -39,7 +36,7 @@ pub fn home(props: &HomeProps) -> Html {
         }
       };
 
-      history.push(Route::GameJoin { id })
+      history.push(MainRoute::GameJoin { id })
     });
   });
 

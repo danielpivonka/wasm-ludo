@@ -61,15 +61,15 @@ pub async fn play_round(db: &Arc<Mutex<Database>>, game_id: String, position: us
 
   match move_result {
     MoveResult::Winner(winner) => {
-      finish_game(db, game_id.as_str());
+      // TODO: handle errors
+      finish_game(db, game_id.as_str()).await.ok();
       MoveResult::Winner(winner)
     },
     MoveResult::Success(msg) => {
-      update_board(db, game_id.as_str(), game.fields.clone());
-      update_player(db, game_id.as_str(), game.get_current_player().clone());
+      update_board(db, game_id.as_str(), game.fields.clone()).await.ok();
+      update_player(db, game_id.as_str(), game.get_current_player().clone()).await.ok();
       MoveResult::Success(msg)
     },
     MoveResult::Error(msg) => MoveResult::Error(msg)
   }
-
 }

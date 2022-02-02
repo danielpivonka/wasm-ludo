@@ -33,7 +33,7 @@ pub fn player(props: &PlayerProps) -> Html {
   let icon = html! { <Icon class="fas fa-sync-alt" /> };
 
   let button = if let Some(on_roll) = on_roll {
-    html! { <Button {icon} onclick={on_roll.clone()}>{"Roll the die"}</Button> }
+    html! { <Button {icon} onclick={on_roll}>{"Roll the die"}</Button> }
   } else {
     html! {}
   };

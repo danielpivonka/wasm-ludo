@@ -1,10 +1,7 @@
-use futures::{SinkExt, StreamExt};
+// use futures::channel::oneshot::channel;
+use futures::SinkExt;
 use gloo::console::log;
-use gloo::storage::{Storage, SessionStorage};
 use gloo::timers::callback::Interval;
-use reqwasm::http::Request;
-use reqwasm::websocket::{futures::WebSocket, Message};
-use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -15,8 +12,9 @@ use crate::components::content::Content;
 use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
-use crate::models::messages::ServerMessage;
-use crate::routes::Route;
+use crate::context::game_context::model::GameContext;
+use crate::models::messages::{ClientMessage, ServerMessage};
+use crate::routes::{GameRoute, MainRoute};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct GameLobbyProps {
@@ -25,55 +23,30 @@ pub struct GameLobbyProps {
 
 #[function_component(GameLobby)]
 pub fn game_lobby(props: &GameLobbyProps) -> Html {
+  let context = use_context::<GameContext>().expect("provider is not a parent");
   let GameLobbyProps { id } = props.clone();
   let history = use_history().unwrap();
   let player_count = use_state(|| 0);
   let seconds = use_state(|| 0);
 
-  // TODO: implement use effect
+  let subscribe = context.subscribe;
+  let sender = context.sender;
   {
-    let player_count = player_count.clone();
     let id = id.clone();
+    let history = history.clone();
+    let player_count = player_count.clone();
     use_effect_with_deps(
       move |_: &[u32; 0]| {
-        log!("use effect triggered");
-        let player_id: String = SessionStorage::get("player_id").unwrap();
-        // let res = Request::get(format!("ws://127.0.0.1:8080/games/websocket/{}/{}", id, player_id)).send().await;
-
-        let mut ws = WebSocket::open(
-          format!("ws://127.0.0.1:8080/games/websocket/{}/{}", id, player_id).as_str(),
-        )
-        .unwrap();
-        let (mut write, mut read) = ws.split();
-
-        spawn_local(async move {
-          // TODO: handle errors as well
-          while let Some(Ok(Message::Text(text))) = read.next().await {
-            if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
-              match message {
-                ServerMessage::DiceValue(_) => todo!(),
-                ServerMessage::SkipPlayer => todo!(),
-                ServerMessage::MoveSuccessful(_) => todo!(),
-                ServerMessage::MoveFailed(_) => todo!(),
-                ServerMessage::PiecePromoted => todo!(),
-                ServerMessage::Information(_) => todo!(),
-                ServerMessage::GameUpdate(_) => todo!(),
-                ServerMessage::PlayerConnected(_) => todo!(),
-                ServerMessage::PlayerDisconnected(_) => todo!(),
-                ServerMessage::PlayerCountChange(players) => {
-                  player_count.set(players);
-                }
-                ServerMessage::GameStarted => todo!(),
-              };
-              log!(format!("1. {:?}", message))
+        subscribe.emit(Callback::from(
+          move |message: ServerMessage| match message {
+            ServerMessage::PlayerCountChange(count) => player_count.set(count),
+            ServerMessage::GameStarted => {
+              history.push(GameRoute::Game { id: id.clone() });
             }
-          }
-          log!("WebSocket Closed")
-        });
-
-        spawn_local(async move {
-          write.send(Message::Text("hello".into())).await.unwrap();
-        });
+            ServerMessage::Error(msg) => log!(msg),
+            _ => {}
+          },
+        ));
 
         || {}
       },
@@ -81,17 +54,19 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
     );
   }
 
-  let redirect_to_game = {
-    let history = history.clone();
+  let on_start = {
     Callback::from(move |_| {
-      history.push(Route::Game {
-        id: "mock_id".into(),
+      let sender = sender.clone();
+      spawn_local(async move {
+        if let Some(mut sender) = sender.clone() {
+          sender.0.send(ClientMessage::StartGame).await.ok();
+        };
       });
     })
   };
 
   let redirect_to_home = Callback::from(move |_| {
-    history.push(Route::Home);
+    history.push(MainRoute::Home);
   });
 
   {
@@ -146,7 +121,7 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
           <span>{"Waiting for other players to join"}</span>
         </div>
         <div class="flex items-center gap-3 mt-16">
-          <Button class="w-full" onclick={redirect_to_game} icon={start_icon}>{"Start the game!"}</Button>
+          <Button class="w-full" onclick={on_start} icon={start_icon}>{"Start the game!"}</Button>
           <Button class="w-full bg-red-700" onclick={redirect_to_home} icon={leave_icon}>{"Leave the lobby"}</Button>
         </div>
       </Card>

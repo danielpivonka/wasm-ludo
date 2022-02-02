@@ -22,7 +22,7 @@ pub fn die(props: &DieProps) -> Html {
   {
     let spinning = spinning.clone();
     let number = number.clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
       move |_| {
         if *is_mount.borrow() {
           *is_mount.borrow_mut() = false;

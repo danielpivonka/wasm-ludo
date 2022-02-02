@@ -6,13 +6,13 @@ use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
 
-use crate::routes::Route;
+use crate::routes::GameRoute;
 
 #[function_component(NotFound)]
 pub fn not_found() -> Html {
   let history = use_history().unwrap();
   let onclick = Callback::once(move |_| {
-    history.push(Route::GameLobby {
+    history.push(GameRoute::GameLobby {
       id: "mock_id".into(),
     })
   });
