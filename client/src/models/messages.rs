@@ -1,14 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{color::Color, game::Game};
-
-#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum ClientMessage {
-  ThrowDice,
-  MoveFigure(usize, Option<Color>),
-  PromotePiece, // shouldn't need to pass color, since server should has attr current_player
-  StartGame,
-}
+use super::{color::Color, game::Game};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "command", content = "payload")]
@@ -30,10 +22,4 @@ pub enum ServerMessage {
   // GameOver(Color),  // winner of a game
   PlayerCountChange(usize),
   GameStarted,
-  Err,
-}
-
-pub enum MoveResult {
-  Success(String),
-  Error(String),
 }

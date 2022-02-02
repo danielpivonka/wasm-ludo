@@ -1,10 +1,10 @@
 use gloo::timers::callback::Interval;
 use yew::prelude::*;
 
-use crate::components::card::Card;
 use crate::components::button::Button;
-use crate::components::icon::Icon;
+use crate::components::card::Card;
 use crate::components::die::Die;
+use crate::components::icon::Icon;
 
 #[derive(PartialEq, Clone)]
 pub enum PlayerButtonPosition {
@@ -23,7 +23,11 @@ pub struct PlayerProps {
 
 #[function_component(Player)]
 pub fn player(props: &PlayerProps) -> Html {
-  let PlayerProps {name, position, on_roll} = props.clone();
+  let PlayerProps {
+    name,
+    position,
+    on_roll,
+  } = props.clone();
   let die_number = use_state::<u32, _>(|| 1);
 
   let icon = html! { <Icon class="fas fa-sync-alt" /> };
@@ -40,7 +44,7 @@ pub fn player(props: &PlayerProps) -> Html {
       let interval = Interval::new(10000, move || {
         die_number.set(*die_number + 1);
       });
-  
+
       || {
         drop(interval);
       }

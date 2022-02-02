@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
-use crate::models::color::Color;
 use crate::components::pawn::Pawn;
+use crate::models::color::Color;
 use crate::utils::{clamp, resolve_bg_color_class};
 
 #[derive(Properties, PartialEq, Clone)]

@@ -11,7 +11,11 @@ use crate::routes::Route;
 #[function_component(NotFound)]
 pub fn not_found() -> Html {
   let history = use_history().unwrap();
-  let onclick = Callback::once(move |_| history.push(Route::GameLobby { id: "mock_id".into() }));
+  let onclick = Callback::once(move |_| {
+    history.push(Route::GameLobby {
+      id: "mock_id".into(),
+    })
+  });
 
   let icon = html! {
     <Icon class="fas fa-home" />

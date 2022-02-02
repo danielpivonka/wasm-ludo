@@ -2,6 +2,6 @@
 addr = "127.0.0.1"
 port = 3000
 
-[[proxy]]
-rewrite = "/api/"
-backend = "http://localhost:8080/"
+# [[proxy]]
+# rewrite = "/api/"
+# backend = "http://localhost:8080/"

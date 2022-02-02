@@ -1,5 +1,5 @@
+use stylist::{css, yew::styled_component};
 use yew::prelude::*;
-use stylist::{yew::styled_component, css};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct BoardMiddleProps {}

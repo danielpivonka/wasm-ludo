@@ -7,28 +7,30 @@ use crate::utils::enums::MoveResult;
 
 use super::player::Player;
 use crate::utils::game::initialize_players;
-
-#[derive(Debug, Serialize, Deserialize)]
+use mongodb::bson::serde_helpers::serialize_hex_string_as_object_id;
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Game {
-  pub id: String,
+  // #[serde(serialize_with = "serialize_hex_string_as_object_id")]
+  // pub oid: String,
   pub started_at: DateTime,
   pub finished_at: Option<DateTime>,
   pub fields: Vec<Field>,
   pub players: Vec<Player>,
   pub current_player: Color,
+  pub dice_throws: Vec<usize>,
 }
 
 const PROMOTE_PIECE: usize = 100;
 
 impl Game {
-  pub fn new(player_names: Vec<String>) -> Self {
+  pub fn new() -> Self {
     Game {
-      id: "".to_string(), // TODO
       started_at: mongodb::bson::DateTime::now(),
       finished_at: None,
-      fields: vec![None; 48], // TODO check if this number is correct
-      players: initialize_players(player_names),
+      fields: vec![None; 52],
+      players: vec![],
       current_player: Color::Red,
+      dice_throws: vec![],
     }
   }
 
