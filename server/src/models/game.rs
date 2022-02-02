@@ -276,9 +276,8 @@ impl Game {
 
   // jump from home column (1 of 5 home fields) to finish
   pub fn jump_from_home_to_finish(&mut self, home_offset: usize) {
-    let home = self.get_home_mut();
-    home[home_offset] = None;
     let mut player = self.get_current_player_mut();
+    player.home[home_offset] = None;
     player.pawns_at_finish += 1;
   }
 
@@ -464,6 +463,7 @@ impl Game {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::borrow::Borrow;
 
   fn get_empty_game() -> Game {
     let mut game = Game::new();
@@ -521,6 +521,14 @@ mod tests {
   fn print_game(game: &Game) {
     println!();
     for (i, field) in game.fields.iter().enumerate() {
+      println!("{}: {:?}", i, field);
+    }
+    println!();
+  }
+
+  fn print_home(player: &Player) {
+    println!();
+    for (i, field) in player.home.iter().enumerate() {
       println!("{}: {:?}", i, field);
     }
     println!();
@@ -762,12 +770,45 @@ mod tests {
 
   #[test]
   fn move_board_to_finish() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
 
+    let dice_value = 6;
+    let starting_pos = 6;  // right in front of home
+    game.fields[starting_pos] = Some(game.current_player);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    let player = game.get_current_player();
+    assert!(is_empty_field(&game.fields, starting_pos));
+    assert_eq!(player.pawns_at_finish, 1);
   }
 
   #[test]
   fn move_home_to_finish() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
 
+    let dice_value = 3;
+    let starting_pos = 2;
+    let player = game.get_current_player_mut();
+    player.home[starting_pos] = Some(Color::Yellow);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, true) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    let player = game.get_current_player();
+    assert!(is_empty_field(&player.home, starting_pos));
+    assert_eq!(player.pawns_at_finish, 1);
   }
 
   #[test]
