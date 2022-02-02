@@ -1,29 +1,30 @@
-use super::ws_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
-use crate::{components::game::database, utils::enums::ServerMessage};
-use crate::models::game::Game;
-use actix::{
-  prelude::{Actor, Context, Handler, Recipient},
-  AsyncContext, ContextFutureSpawner, WrapFuture,
-};
+use actix::prelude::{Actor, Context, Handler, Recipient};
 use async_trait::async_trait;
-use futures::{Future, TryStreamExt};
 use mongodb::Database;
-use serde_json::json;
 use std::{
   collections::{HashMap, HashSet},
   sync::{Arc, Mutex},
 };
-use uuid::Uuid;
 
-type Socket = Recipient<WsMessage>;
+use crate::utils::enums::ServerMessage;
+use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
+use crate::utils::enums::ClientMessage;
+use super::{utils::send_message_to_room, services::start_game::start_game};
 
-// GameServer actor who keeps track of all the sessions and game rooms (each game room has up to 4 sessions)
+type Session = Recipient<WsMessage>;
+
+#[derive(Clone)]
+pub struct GameServerState {
+  pub db: Arc<Mutex<Database>>,
+  pub sessions: HashMap<String, Session>,
+  pub rooms: HashMap<String, HashSet<String>>,
+}
+
+// GameServer actor which keeps track of all the sessions and game rooms (each game room has up to 4 sessions)
 pub struct GameServer {
   db: Arc<Mutex<Database>>,
-  // player_id => Addres to send messages
-  sessions: HashMap<String, Recipient<WsMessage>>,
-  // room_id / game_id => player_id 
-  rooms: HashMap<String, HashSet<String>>,
+  sessions: HashMap<String, Session>, // player_id => Addres to send messages
+  rooms: HashMap<String, HashSet<String>>, // room_id / game_id => player_id 
 }
 
 impl GameServer {
@@ -34,14 +35,13 @@ impl GameServer {
       rooms: HashMap::new(),
     }
   }
-}
 
-// helper fnc to send a message to a session actor with given id, session actor then sends this to the client
-fn send_message(message: &str, sessions: HashMap<String, Recipient<WsMessage>>, id_to: &String) {
-  if let Some(session) = sessions.get(id_to) {
-    session.do_send(WsMessage(message.to_owned())).unwrap();
-  } else {
-    println!("attempting to send message but couldn't find session with given id.");
+  pub fn get_state(&self) -> GameServerState {
+    GameServerState {
+      db: self.db.clone(),
+      sessions: self.sessions.clone(),
+      rooms: self.rooms.clone(),
+    }
   }
 }
 
@@ -55,22 +55,17 @@ impl Handler<Connect> for GameServer {
   type Result = ();
 
   fn handle(&mut self, msg: Connect, _: &mut Context<Self>) {
-    println!("Connect handle");
     self.sessions.insert(msg.player_id.clone(), msg.address);
     self.rooms
       .entry(msg.room_id.clone())
       .or_insert_with(HashSet::new)
       .insert(msg.player_id.clone());
 
-    if let Some(sessions) = self.rooms.get(&msg.room_id) {
-      let count = sessions.iter().count();
-      for session in sessions {
-        let server_msg = ServerMessage::PlayerJoined(count);
-        let json = serde_json::to_string(&server_msg).unwrap();
-        let message = json.as_str();
-        send_message(message, self.sessions.clone(), session);
-      }
-    }
+    let count = self.sessions.iter().count();
+    let server_msg = ServerMessage::PlayerCountChange(count);
+    let json = serde_json::to_string(&server_msg).unwrap();
+    
+    send_message_to_room(json.as_str(), self.sessions.clone(), self.rooms.clone(), msg.room_id.as_str());
   }
 }
 
@@ -91,21 +86,39 @@ impl Handler<Disconnect> for GameServer {
       }
     }
 
+    let server_msg = ServerMessage::PlayerCountChange(self.sessions.len());
+    let json = serde_json::to_string(&server_msg).unwrap();
+
     for room in rooms {
-      if let Some(sessions) = self.rooms.get(&room) {
-        for session in sessions {
-          send_message("Someone disconnected", self.sessions.clone(), session);
-        }
-      }
+      send_message_to_room(json.as_str(), self.sessions.clone(), self.rooms.clone(), room.as_str());
     }
   }
 }
 
-#[async_trait]
+// #[async_trait]
 impl Handler<ClientActorMessage> for GameServer {
   type Result = ();
 
   fn handle(&mut self, msg: ClientActorMessage, ctx: &mut Context<Self>) {
+    let result = serde_json::from_str::<ClientMessage>(msg.content.as_str());
+
+    let message = match result {
+      Ok(message) => message,
+      // TODO: handle errors [send back Error(String) message ??]
+      Err(_) => return,
+    };
+
+    let state = self.get_state();
+    actix_web::rt::spawn(async move {
+      match message {
+        ClientMessage::ThrowDice => todo!(),
+        ClientMessage::MoveFigure(_, _) => todo!(),
+        ClientMessage::PromotePiece => todo!(),
+        ClientMessage::StartGame => {
+          start_game(state, msg).await
+        },
+      };
+    });
     //   let sessions = self.sessions.clone();
     //   let db = self.db.clone();
     //   tokio::spawn(async move {

@@ -1,14 +1,12 @@
 use std::time::{Duration, Instant};
-
+use actix_web_actors::ws;
 use actix::{
   fut, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, Handler,
   Running, StreamHandler, WrapFuture,
 };
-use actix_web_actors::ws;
-use uuid::Uuid;
 
-use super::game_server::GameServer;
-use super::ws_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
+use crate::components::game_server::actor::GameServer;
+use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(10);
 const TIMEOUT: Duration = Duration::from_secs(15);
@@ -83,7 +81,7 @@ impl Actor for GameSession {
 
   fn stopping(&mut self, _: &mut Self::Context) -> Running {
     println!("stoppping");
-    // self.lobby_addr.do_send(Disconnect { id: self.id, room_id: self.room });
+    self.game_server.do_send(Disconnect { room_id: self.room.clone(), player_id: self.id.clone() });
     Running::Stop
   }
 }
@@ -113,7 +111,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GameSession {
       Ok(ws::Message::Nop) => {}
       Ok(ws::Message::Text(s)) => self.game_server.do_send(ClientActorMessage {
         player_id: self.id.clone(),
-        msg: s.to_string(),
+        content: s.to_string(),
         room_id: self.room.clone(),
       }),
       Err(e) => panic!("{}", e),

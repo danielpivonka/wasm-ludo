@@ -1,5 +1,4 @@
-use actix_web::http::StatusCode;
-use actix_web::{get, post, put, web, Error, HttpRequest, HttpResponse};
+use actix_web::{get, post, put, web, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use futures::stream::TryStreamExt;
 use serde::Deserialize;
@@ -8,7 +7,7 @@ use uuid::Uuid;
 use crate::models::{app_data::AppData, color::Color, game::Game, player::Player};
 
 use super::database;
-use super::websocket::GameSession;
+use super::super::session::actor::GameSession;
 
 #[post("")]
 pub async fn create_new_game(data: web::Data<AppData>) -> HttpResponse {

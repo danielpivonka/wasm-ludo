@@ -20,6 +20,6 @@ pub enum ServerMessage {
   PlayerConnected(Color),
   PlayerDisconnected(Color),
   // GameOver(Color),  // winner of a game
-  PlayerJoined(usize),
+  PlayerCountChange(usize),
   GameStarted,
 }

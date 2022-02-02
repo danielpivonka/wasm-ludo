@@ -1,16 +1,12 @@
 use std::sync::{Arc, Mutex};
-
-use actix_web::web;
+use anyhow::anyhow;
 use mongodb::{
   bson::{self, doc, oid::ObjectId, Bson, Document},
   results::UpdateResult,
   Database,
 };
 
-use anyhow::anyhow;
-use uuid::Uuid;
-
-use crate::models::{app_data::AppData, color::Color, game::Game, player::Player};
+use crate::models::{color::Color, game::Game, player::Player};
 
 pub async fn create_game(db: &Arc<Mutex<Database>>) -> anyhow::Result<String> {
   let db_mutex = db.lock().unwrap();

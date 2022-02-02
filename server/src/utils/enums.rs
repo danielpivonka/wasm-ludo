@@ -7,6 +7,7 @@ pub enum ClientMessage {
   ThrowDice,
   MoveFigure(usize, Option<Color>),
   PromotePiece, // shouldn't need to pass color, since server should has attr current_player
+  StartGame,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -27,8 +28,9 @@ pub enum ServerMessage {
   PlayerConnected(Color),
   PlayerDisconnected(Color),
   // GameOver(Color),  // winner of a game
-  PlayerJoined(usize),
+  PlayerCountChange(usize),
   GameStarted,
+  Err,
 }
 
 pub enum MoveResult {

@@ -1,7 +1,7 @@
 use actix::Actor;
 use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
-use components::game::game_server::GameServer;
+use components::game_server::actor::GameServer;
 use dotenv::dotenv;
 use env_logger::Env;
 use mongodb::{options::ClientOptions, Client};
@@ -45,7 +45,6 @@ async fn main() -> anyhow::Result<()> {
       )
       .app_data(app_data.clone())
       .wrap(middleware::Logger::default())
-      .configure(components::info::routes::attach_routes)
       .configure(components::game::routes::attach_routes)
   })
   .bind("127.0.0.1:8080")?

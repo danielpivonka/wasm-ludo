@@ -11,10 +11,10 @@ use crate::pages::not_found::NotFound;
 pub enum Route {
   #[at("/")]
   Home,
-  #[at("/games/:id/lobby")]
-  GameLobby { id: String },
   #[at("/games/:id/join")]
   GameJoin { id: String },
+  #[at("/games/:id/lobby")]
+  GameLobby { id: String },
   #[at("/games/:id")]
   Game { id: String },
   #[not_found]
@@ -25,8 +25,8 @@ pub enum Route {
 fn switch(routes: &Route) -> Html {
   match routes {
     Route::Home => html! {<Home />},
-    Route::GameLobby { id } => html! {<GameLobby id={ id.clone() } />},
     Route::GameJoin { id } => html! {<GameJoin id={ id.clone() } />},
+    Route::GameLobby { id } => html! {<GameLobby id={ id.clone() } />},
     Route::Game { id } => html! {<Game id={ id.clone() } />},
     Route::NotFound => html! {<NotFound />},
   }

@@ -4,7 +4,7 @@ use crate::types::FieldType;
 
 use super::color::Color;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Player {
   pub id: String,
   pub name: String,

@@ -6,7 +6,7 @@ use crate::models::color::Color;
 
 use super::player::Player;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Game {
   // TODO: server uses bson::DateTime
   pub started_at: DateTime<Utc>,

@@ -1,2 +1,3 @@
 pub mod game;
-pub mod info;
+pub mod game_server;
+pub mod session;

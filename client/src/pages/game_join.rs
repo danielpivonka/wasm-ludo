@@ -2,7 +2,7 @@ use chrono::Local;
 use gloo::dialogs::alert;
 use gloo::{
   console::log,
-  storage::{LocalStorage, Storage},
+  storage::{SessionStorage, Storage},
 };
 use reqwasm::http::Request;
 use serde::Deserialize;
@@ -35,6 +35,10 @@ pub fn game_join(props: &GameJoinProps) -> Html {
   let GameJoinProps { id } = props.clone();
   let history = use_history().unwrap();
   let nickname = use_state::<String, _>(|| "".into());
+
+  // use_effect_with_deps(|_| {
+
+  // }, []);
 
   let onchange = {
     let nickname = nickname.clone();
@@ -89,7 +93,7 @@ pub fn game_join(props: &GameJoinProps) -> Html {
           }
         };
 
-        if LocalStorage::set("player_id", player_id).is_err() {
+        if SessionStorage::set("player_id", player_id).is_err() {
           alert("something failed");
           return;
         };

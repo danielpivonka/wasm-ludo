@@ -1,6 +1,6 @@
 use futures::{SinkExt, StreamExt};
 use gloo::console::log;
-use gloo::storage::{LocalStorage, Storage};
+use gloo::storage::{Storage, SessionStorage};
 use gloo::timers::callback::Interval;
 use reqwasm::http::Request;
 use reqwasm::websocket::{futures::WebSocket, Message};
@@ -37,7 +37,7 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
     use_effect_with_deps(
       move |_: &[u32; 0]| {
         log!("use effect triggered");
-        let player_id: String = LocalStorage::get("player_id").unwrap();
+        let player_id: String = SessionStorage::get("player_id").unwrap();
         // let res = Request::get(format!("ws://127.0.0.1:8080/games/websocket/{}/{}", id, player_id)).send().await;
 
         let mut ws = WebSocket::open(
@@ -60,7 +60,7 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
                 ServerMessage::GameUpdate(_) => todo!(),
                 ServerMessage::PlayerConnected(_) => todo!(),
                 ServerMessage::PlayerDisconnected(_) => todo!(),
-                ServerMessage::PlayerJoined(players) => {
+                ServerMessage::PlayerCountChange(players) => {
                   player_count.set(players);
                 }
                 ServerMessage::GameStarted => todo!(),
@@ -132,7 +132,7 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
       </div>
       <Card class="w-full px-8 py-14 lg:px-40">
         <p class="text-xl text-neutral-600 font-bold">{"Share the link with your friends and start the game"}</p>
-        <CopyBar content={ format!("localhost:3000/games/{}/lobby", id) } />
+        <CopyBar content={ format!("localhost:3000/games/{}/join", id) } />
         <div class="flex items-center gap-3 text-neutral-600 mt-16">
           <Icon class="fas fa-info-circle" />
           <p class="text-xl font-bold">{"Starting the game without all 4 players will fill the remaining spots with
