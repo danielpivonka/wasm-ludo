@@ -123,8 +123,8 @@ impl Game {
   pub fn get_offset(&self) -> usize {
     let offset = (self.fields.len() / 4) as usize;
     match self.current_player {
-      Color::Yellow => 0,
-      Color::Blue => offset,
+      Color::Yellow => offset * 0,
+      Color::Blue => offset * 1,
       Color::Red => offset * 2,
       Color::Green => offset * 3,
     }

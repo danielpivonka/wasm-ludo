@@ -6,7 +6,7 @@ use mongodb::{
   Database,
 };
 
-use crate::models::{color::Color, game::Game, player::Player};
+use crate::{models::{game::Game, player::Player}, types::Field};
 
 pub async fn create_game(db: &Arc<Mutex<Database>>) -> anyhow::Result<String> {
   let db_mutex = db.lock().unwrap();
@@ -58,7 +58,7 @@ pub async fn find_game(db: &Arc<Mutex<Database>>, game_id: &str) -> anyhow::Resu
 pub async fn update_board(
   db: &Arc<Mutex<Database>>,
   game_id: &str,
-  fields: Vec<Color>,
+  fields: Vec<Field>, // TODO: replaced Color with Field - does that fuck up anything?
 ) -> anyhow::Result<UpdateResult> {
   let serialized_fields = bson::to_bson(&fields)?;
   let oid = match ObjectId::parse_str(game_id) {
