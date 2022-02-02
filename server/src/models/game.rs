@@ -518,8 +518,16 @@ mod tests {
     fields[position] = field
   }
 
+  fn print_game(game: &Game) {
+    println!();
+    for (i, field) in game.fields.iter().enumerate() {
+      println!("{}: {:?}", i, field);
+    }
+    println!();
+  }
+
   #[test]
-  fn promote() {
+  fn initial_promote() {
     let mut game = get_empty_game();
     game.current_player = Color::Yellow;
 
@@ -581,9 +589,8 @@ mod tests {
 
     let dice_value = 6 + 8;
     let opponent_color = Color::Green;
-    let fields = &game.fields;
     let starting_pos = game.get_starting_position();
-    let field_size = fields.len();
+    let field_size = game.fields.len();
 
     game.fields[starting_pos + dice_value - 6] = Some(opponent_color);
 
@@ -591,34 +598,124 @@ mod tests {
     let mut opponent = game.get_player_mut(opponent_color);
     opponent.pawns_at_start = 3;
 
+    print_game(&game);
+
+    let mut game = game.clone();
     match game.execute_move(PROMOTE_PIECE, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
       MoveResult::Success(_) => assert!(true)
     }
 
+    print_game(&game);
+
     assert_eq!(game.get_current_player().pawns_at_start, 3);
-    assert_eq!(opponent.pawns_at_start, 4);
-    assert!(is_empty_field(fields, 8));
-    assert!(is_occupied_field_by(fields, 8 + 3, Color::Yellow));
-    assert_eq!(empty_fields_count(fields), field_size - 1);
+    assert_eq!(game.get_player(opponent_color).pawns_at_start, 4);
+    assert!(is_empty_field(&game.fields, 8));
+    assert!(is_occupied_field_by(&game.fields, 8 + 8, Color::Yellow));
+    assert_eq!(empty_fields_count(&game.fields), field_size - 1);
 
   }
 
-  #[test]
-  fn blocked_move() {
-
-  }
-
-  // TODO: should we remove opponent on starting position when promoting a piece?
-  //  probably just skip as with other 'multi-hops' ? currently it's being removed
+  // #[test]
+  // fn blocked_move() {
+  //
+  // }
 
   #[test]
   fn remove_opponent() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
 
+    let dice_value = 5;
+    let opponent_color = Color::Green;
+    let starting_pos = 20;
+    let field_size = game.fields.len();
+
+    game.fields[starting_pos] = Some(game.current_player);
+    game.fields[starting_pos + dice_value] = Some(opponent_color);
+    game.fields[starting_pos + dice_value + 1] = Some(opponent_color);
+    game.fields[starting_pos + dice_value - 1] = Some(opponent_color);
+
+    let mut opponent = game.get_player_mut(opponent_color);
+    opponent.pawns_at_start = 1;
+
+    let mut opponent = game.get_current_player_mut();
+    opponent.pawns_at_start = 3;
+
+    print_game(&game);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    print_game(&game);
+
+    assert_eq!(game.get_current_player().pawns_at_start, 3);
+    assert_eq!(game.get_player(opponent_color).pawns_at_start, 2);
+    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value, Color::Yellow));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value + 1, Color::Green));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value - 1, Color::Green));
+
+    // normally, Blue would follow
+    game.current_player = Color::Green;
+
+    let dice_value = 1;
+    let starting_pos = 24;
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    print_game(&game);
+
+    assert_eq!(game.get_player(Color::Green).pawns_at_start, 2);
+    // assert_eq!(game.get_player(Color::Yellow).pawns_at_start, 4);
+    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value, Color::Green));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value + 1, Color::Green));
   }
 
   #[test]
   fn move_board_to_home() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    let dice_value = 1;
+    let starting_pos = 6;  // right in front of home
+    let field_size = game.fields.len();
+
+    game.fields[starting_pos] = Some(game.current_player);
+    game.fields[starting_pos + dice_value] = Some(opponent_color);
+    game.fields[starting_pos + dice_value + 1] = Some(opponent_color);
+    game.fields[starting_pos + dice_value - 1] = Some(opponent_color);
+
+    let mut opponent = game.get_player_mut(opponent_color);
+    opponent.pawns_at_start = 1;
+
+    let mut opponent = game.get_current_player_mut();
+    opponent.pawns_at_start = 3;
+
+    print_game(&game);
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, false) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Success(_) => assert!(true)
+    }
+
+    print_game(&game);
+
+    assert_eq!(game.get_current_player().pawns_at_start, 3);
+    assert_eq!(game.get_player(opponent_color).pawns_at_start, 2);
+    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value, Color::Yellow));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value + 1, Color::Green));
+    assert!(is_occupied_field_by(&game.fields, starting_pos + dice_value - 1, Color::Green));
 
   }
 
