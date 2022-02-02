@@ -8,9 +8,9 @@ use yew::prelude::*;
 use gloo::console::log;
 use gloo::storage::{SessionStorage, Storage};
 
-use crate::models::messages::ServerMessage;
+use crate::models::messages::{ServerMessage, ClientMessage};
 
-use super::model::GameContext;
+use super::model::{GameContext, MsgSender};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct UseGameProps {
@@ -23,6 +23,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
 
   {
+    let sender = sender.clone();
     let event_handler = event_handler.clone();
     use_effect_with_deps::<_, Box<dyn FnOnce() -> ()>, _>(
       move |[callback]| {
@@ -43,8 +44,8 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
         .unwrap();
 
         let (mut write, mut read) = ws.split();
-        let (tx, mut rx) = mpsc::channel::<ServerMessage>(1000);
-        sender.set(Some(tx));
+        let (tx, mut rx) = mpsc::channel::<ClientMessage>(1000);
+        sender.set(Some(MsgSender(tx)));
 
         spawn_local(async move {
           // TODO: handle errors as well
@@ -81,5 +82,6 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
     game: None,
     player_count: 0,
     subscribe,
+    sender: (*sender).clone(),
   }
 }

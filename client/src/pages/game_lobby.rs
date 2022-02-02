@@ -20,7 +20,7 @@ use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
 use crate::context::game_context::model::GameContext;
-use crate::models::messages::ServerMessage;
+use crate::models::messages::{ServerMessage, ClientMessage};
 use crate::routes::{GameRoute, MainRoute};
 
 #[derive(Properties, PartialEq, Clone)]
@@ -37,13 +37,18 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
   let seconds = use_state(|| 0);
 
   let subscribe = context.subscribe;
+  let sender = context.sender;
   {
+    let id = id.clone();
+    let history = history.clone();
     let player_count = player_count.clone();
     use_effect_with_deps(
       move |_: &[u32; 0]| {
         subscribe.emit(Callback::from(move |message: ServerMessage| match message {
           ServerMessage::PlayerCountChange(count) => player_count.set(count),
-          ServerMessage::GameStarted => todo!(),
+          ServerMessage::GameStarted => {
+            history.push(GameRoute::Game { id: id.clone() });
+          },
           ServerMessage::Error(msg) => log!(msg),
           _ => {}
         }));
@@ -55,10 +60,12 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
   }
 
   let on_start = {
-    let history = history.clone();
     Callback::from(move |_| {
-      history.push(GameRoute::Game {
-        id: "mock_id".into(),
+      let sender = sender.clone();
+      spawn_local(async move {
+        if let Some(mut sender) = sender.clone() {
+          sender.0.send(ClientMessage::StartGame).await.ok();
+        };
       });
     })
   };

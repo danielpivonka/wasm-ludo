@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{color::Color, game::Game};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "command", content = "payload")]
 pub enum ServerMessage {
   DiceValue(usize, bool), // response to ThrowDice - bool: whether player should throw again
@@ -21,4 +21,12 @@ pub enum ServerMessage {
   GameOver(Color), // winner of a game
   GameStarted,
   Error(String),
+}
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+pub enum ClientMessage {
+  ThrowDice,
+  MoveFigure(usize, Option<Color>),
+  PromotePiece, // shouldn't need to pass color, since server should has attr current_player
+  StartGame,
 }

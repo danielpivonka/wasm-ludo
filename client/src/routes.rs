@@ -15,7 +15,7 @@ pub enum MainRoute {
   #[at("/games/:id/join")]
   GameJoin { id: String },
   #[at("/games/:id/:rest")]
-  Game { id: String },
+  GameSubroutes { id: String },
   #[not_found]
   #[at("/404")]
   NotFound,
@@ -25,7 +25,7 @@ pub enum MainRoute {
 pub enum GameRoute {
   #[at("/games/:id/lobby")]
   GameLobby { id: String },
-  #[at("/games/:id")]
+  #[at("/games/:id/play")]
   Game { id: String },
 }
 
@@ -40,7 +40,7 @@ fn switch_main(routes: &MainRoute) -> Html {
   match routes {
     MainRoute::Home => html! {<Home />},
     MainRoute::GameJoin { id } => html! { <GameJoin id={ id.clone() } /> },
-    MainRoute::Game { id } => html! {
+    MainRoute::GameSubroutes { id } => html! {
       <GameProvider game_id={ id.clone() }>
         <Switch<GameRoute> render={Switch::render(switch_game)} />
       </GameProvider>
