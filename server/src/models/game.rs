@@ -6,8 +6,6 @@ use crate::types::Field;
 use crate::utils::enums::MoveResult;
 
 use super::player::Player;
-use crate::utils::game::initialize_players;
-use mongodb::bson::serde_helpers::serialize_hex_string_as_object_id;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Game {
   // #[serde(serialize_with = "serialize_hex_string_as_object_id")]
@@ -180,7 +178,7 @@ impl Game {
     (position + dice_value) % self.fields.len()
   }
 
-  // if we can make a move/jump within main board/field (not reaching home)
+  /// if we can make a move/jump within main board/field (not reaching home)
   pub fn can_jump(&self, position: usize, dice_value: usize) -> bool {
     dice_value < self.distance_from_home(position)
       && self.is_available_field(self.get_new_position(position, dice_value))
@@ -287,6 +285,12 @@ impl Game {
     self.fields[position] = None;
     let mut player = self.get_current_player_mut();
     player.pawns_at_finish += 1;
+  }
+
+  pub fn can_jump_from_home(&self, position: usize, dice_value: usize) -> bool {
+    let home = self.get_home();
+    return position + dice_value == 5
+      || (position + dice_value < 5 && home[position + dice_value] == None);
   }
 
   pub fn jump_from_home(&mut self, old_home_offset: usize, new_home_offset: usize) {

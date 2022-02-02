@@ -1,5 +1,4 @@
 use crate::models::color::Color;
-use crate::models::game::Game;
 use crate::models::player::Player;
 use crate::utils::bot::{create_bot_name, make_a_move_bot};
 use crate::utils::enums::MoveResult;

@@ -109,7 +109,7 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     .enumerate()
     .filter(|(_position, field)| game.is_occupied_by(field, &game.current_player))
     .map(|(position, _field)| position)
-    .filter(|&position| game.can_jump(position, dice_value))
+    .filter(|&position| game.can_jump_from_home(position, dice_value))
     .collect();
 
   if !piece_positions_in_home_row.is_empty() {
