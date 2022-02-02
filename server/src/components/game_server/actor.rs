@@ -5,10 +5,10 @@ use std::{
   sync::{Arc, Mutex},
 };
 
-use crate::utils::enums::ServerMessage;
+use super::{services::start_game::start_game, utils::send_message_to_room};
 use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
 use crate::utils::enums::ClientMessage;
-use super::{utils::send_message_to_room, services::start_game::start_game};
+use crate::utils::enums::ServerMessage;
 
 type Session = Recipient<WsMessage>;
 
@@ -23,7 +23,7 @@ pub struct GameServerState {
 pub struct GameServer {
   db: Arc<Mutex<Database>>,
   sessions: HashMap<String, Session>, // player_id => Addres to send messages
-  rooms: HashMap<String, HashSet<String>>, // room_id / game_id => player_id 
+  rooms: HashMap<String, HashSet<String>>, // room_id / game_id => player_id
 }
 
 impl GameServer {
@@ -55,16 +55,22 @@ impl Handler<Connect> for GameServer {
 
   fn handle(&mut self, msg: Connect, _: &mut Context<Self>) {
     self.sessions.insert(msg.player_id.clone(), msg.address);
-    self.rooms
+    self
+      .rooms
       .entry(msg.room_id.clone())
       .or_insert_with(HashSet::new)
       .insert(msg.player_id.clone());
 
-    let count = self.sessions.iter().count();
+    let count = self.sessions.len();
     let server_msg = ServerMessage::PlayerCountChange(count);
     let json = serde_json::to_string(&server_msg).unwrap();
-    
-    send_message_to_room(json.as_str(), self.sessions.clone(), self.rooms.clone(), msg.room_id.as_str());
+
+    send_message_to_room(
+      json.as_str(),
+      self.sessions.clone(),
+      self.rooms.clone(),
+      msg.room_id.as_str(),
+    );
   }
 }
 
@@ -89,7 +95,12 @@ impl Handler<Disconnect> for GameServer {
     let json = serde_json::to_string(&server_msg).unwrap();
 
     for room in rooms {
-      send_message_to_room(json.as_str(), self.sessions.clone(), self.rooms.clone(), room.as_str());
+      send_message_to_room(
+        json.as_str(),
+        self.sessions.clone(),
+        self.rooms.clone(),
+        room.as_str(),
+      );
     }
   }
 }
@@ -113,9 +124,7 @@ impl Handler<ClientActorMessage> for GameServer {
         ClientMessage::ThrowDice => todo!(),
         ClientMessage::MoveFigure(_, _) => todo!(),
         ClientMessage::PromotePiece => todo!(),
-        ClientMessage::StartGame => {
-          start_game(state, msg).await
-        },
+        ClientMessage::StartGame => start_game(state, msg).await,
       };
     });
 

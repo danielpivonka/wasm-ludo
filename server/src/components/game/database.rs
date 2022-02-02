@@ -1,11 +1,15 @@
-use std::sync::{Arc, Mutex};
 use anyhow::anyhow;
 use mongodb::{
   bson::{self, doc, oid::ObjectId, Bson, Document},
-  Database, options::{FindOneAndUpdateOptions, ReturnDocument},
+  options::{FindOneAndUpdateOptions, ReturnDocument},
+  Database,
 };
+use std::sync::{Arc, Mutex};
 
-use crate::{models::{game::Game, player::Player}, types::Field};
+use crate::{
+  models::{game::Game, player::Player},
+  types::Field,
+};
 
 pub async fn create_game(db: &Arc<Mutex<Database>>) -> anyhow::Result<String> {
   let db_mutex = db.lock().unwrap();
@@ -114,8 +118,12 @@ async fn update_game(
 ) -> anyhow::Result<Game> {
   let db_mutex = db.lock().unwrap();
   let game_collection = db_mutex.collection::<Game>("games");
-  let option = FindOneAndUpdateOptions::builder().return_document(ReturnDocument::After).build();
-  let res = game_collection.find_one_and_update(filter, update, option).await;
+  let option = FindOneAndUpdateOptions::builder()
+    .return_document(ReturnDocument::After)
+    .build();
+  let res = game_collection
+    .find_one_and_update(filter, update, option)
+    .await;
   match res {
     Ok(Some(game)) => Ok(game),
     Ok(None) => Err(anyhow!("Game doesnt exits")),

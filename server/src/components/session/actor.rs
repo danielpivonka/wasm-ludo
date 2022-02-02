@@ -1,9 +1,9 @@
-use std::time::{Duration, Instant};
-use actix_web_actors::ws;
 use actix::{
   fut, Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, Handler,
   Running, StreamHandler, WrapFuture,
 };
+use actix_web_actors::ws;
+use std::time::{Duration, Instant};
 
 use crate::components::game_server::actor::GameServer;
 use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
@@ -81,7 +81,10 @@ impl Actor for GameSession {
 
   fn stopping(&mut self, _: &mut Self::Context) -> Running {
     println!("stoppping");
-    self.game_server.do_send(Disconnect { room_id: self.room.clone(), player_id: self.id.clone() });
+    self.game_server.do_send(Disconnect {
+      room_id: self.room.clone(),
+      player_id: self.id.clone(),
+    });
     Running::Stop
   }
 }
@@ -95,7 +98,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GameSession {
         ctx.pong(&msg);
       }
       // we recieved a pong message, client is still active so we can reset the heartbeat
-      Ok(ws::Message::Pong(msg)) => {
+      Ok(ws::Message::Pong(_msg)) => {
         self.heartbeat = Instant::now();
       }
       Ok(ws::Message::Binary(bin)) => ctx.binary(bin),

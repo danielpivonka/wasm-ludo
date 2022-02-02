@@ -6,8 +6,8 @@ use uuid::Uuid;
 
 use crate::models::{app_data::AppData, color::Color, game::Game, player::Player};
 
-use super::database;
 use super::super::session::actor::GameSession;
+use super::database;
 
 #[post("")]
 pub async fn create_new_game(data: web::Data<AppData>) -> HttpResponse {
