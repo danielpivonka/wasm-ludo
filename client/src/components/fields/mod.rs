@@ -4,7 +4,7 @@ use std::iter::FromIterator;
 
 use yew::prelude::*;
 
-use crate::components::field::Field;
+use crate::components::field::{Field, FieldVariant};
 use crate::components::icon::Icon;
 use crate::components::pawn::Pawn;
 use crate::context::game_context::model::GameContext;
@@ -17,12 +17,6 @@ pub enum FieldsPosition {
   Right,
   Bottom,
   Left,
-}
-
-#[derive(PartialEq)]
-enum FP {
-  Home,
-  Main
 }
 
 #[derive(Properties, PartialEq, Clone)]
@@ -44,88 +38,88 @@ pub fn fields(props: &FieldsProps) -> Html {
     offset,
   } = props.clone();
 
-  let left_position_map: HashMap<usize, (usize, FP)> = HashMap::from_iter(IntoIter::new([
-    (17, (0, FP::Main)),
-    (16, (1, FP::Main)),
-    (15, (2, FP::Main)),
-    (14, (3, FP::Main)),
-    (13, (4, FP::Main)),
-    (12, (5, FP::Main)),
-    (6, (6, FP::Main)),
-    (0, (7, FP::Main)),
-    (1, (8, FP::Main)),
-    (2, (9, FP::Main)),
-    (3, (10, FP::Main)),
-    (4, (11, FP::Main)),
-    (5, (12, FP::Main)),
-    (7, (0, FP::Home)),
-    (8, (1, FP::Home)),
-    (9, (2, FP::Home)),
-    (10, (3, FP::Home)),
-    (11, (4, FP::Home)),
+  let left_position_map: HashMap<usize, (usize, FieldVariant)> = HashMap::from_iter(IntoIter::new([
+    (17, (0, FieldVariant::Main)),
+    (16, (1, FieldVariant::Main)),
+    (15, (2, FieldVariant::Main)),
+    (14, (3, FieldVariant::Main)),
+    (13, (4, FieldVariant::Main)),
+    (12, (5, FieldVariant::Main)),
+    (6, (6, FieldVariant::Main)),
+    (0, (7, FieldVariant::Main)),
+    (1, (8, FieldVariant::Main)),
+    (2, (9, FieldVariant::Main)),
+    (3, (10, FieldVariant::Main)),
+    (4, (11, FieldVariant::Main)),
+    (5, (12, FieldVariant::Main)),
+    (7, (0, FieldVariant::Home)),
+    (8, (1, FieldVariant::Home)),
+    (9, (2, FieldVariant::Home)),
+    (10, (3, FieldVariant::Home)),
+    (11, (4, FieldVariant::Home)),
   ]));
 
-  let top_position_map: HashMap<usize, (usize, FP)> = HashMap::from_iter(IntoIter::new([
-    (15, (0, FP::Main)),
-    (12, (1, FP::Main)),
-    (9, (2, FP::Main)),
-    (6, (3, FP::Main)),
-    (3, (4, FP::Main)),
-    (0, (5, FP::Main)),
-    (1, (6, FP::Main)),
-    (2, (7, FP::Main)),
-    (5, (8, FP::Main)),
-    (8, (9, FP::Main)),
-    (11, (10, FP::Main)),
-    (14, (11, FP::Main)),
-    (17, (12, FP::Main)),
-    (4, (0, FP::Home)),
-    (7, (1, FP::Home)),
-    (10, (2, FP::Home)),
-    (13, (3, FP::Home)),
-    (16, (4, FP::Home)),
+  let top_position_map: HashMap<usize, (usize, FieldVariant)> = HashMap::from_iter(IntoIter::new([
+    (15, (0, FieldVariant::Main)),
+    (12, (1, FieldVariant::Main)),
+    (9, (2, FieldVariant::Main)),
+    (6, (3, FieldVariant::Main)),
+    (3, (4, FieldVariant::Main)),
+    (0, (5, FieldVariant::Main)),
+    (1, (6, FieldVariant::Main)),
+    (2, (7, FieldVariant::Main)),
+    (5, (8, FieldVariant::Main)),
+    (8, (9, FieldVariant::Main)),
+    (11, (10, FieldVariant::Main)),
+    (14, (11, FieldVariant::Main)),
+    (17, (12, FieldVariant::Main)),
+    (4, (0, FieldVariant::Home)),
+    (7, (1, FieldVariant::Home)),
+    (10, (2, FieldVariant::Home)),
+    (13, (3, FieldVariant::Home)),
+    (16, (4, FieldVariant::Home)),
   ]));
 
-  let right_position_map: HashMap<usize, (usize, FP)> = HashMap::from_iter(IntoIter::new([
-    (0, (0, FP::Main)),
-    (1, (1, FP::Main)),
-    (2, (2, FP::Main)),
-    (3, (3, FP::Main)),
-    (4, (4, FP::Main)),
-    (5, (5, FP::Main)),
-    (11, (6, FP::Main)),
-    (17, (7, FP::Main)),
-    (16, (8, FP::Main)),
-    (15, (9, FP::Main)),
-    (14, (10, FP::Main)),
-    (13, (11, FP::Main)),
-    (12, (12, FP::Main)),
-    (6, (4, FP::Home)),
-    (7, (3, FP::Home)),
-    (8, (2, FP::Home)),
-    (9, (1, FP::Home)),
-    (10, (0, FP::Home)),
+  let right_position_map: HashMap<usize, (usize, FieldVariant)> = HashMap::from_iter(IntoIter::new([
+    (0, (0, FieldVariant::Main)),
+    (1, (1, FieldVariant::Main)),
+    (2, (2, FieldVariant::Main)),
+    (3, (3, FieldVariant::Main)),
+    (4, (4, FieldVariant::Main)),
+    (5, (5, FieldVariant::Main)),
+    (11, (6, FieldVariant::Main)),
+    (17, (7, FieldVariant::Main)),
+    (16, (8, FieldVariant::Main)),
+    (15, (9, FieldVariant::Main)),
+    (14, (10, FieldVariant::Main)),
+    (13, (11, FieldVariant::Main)),
+    (12, (12, FieldVariant::Main)),
+    (6, (4, FieldVariant::Home)),
+    (7, (3, FieldVariant::Home)),
+    (8, (2, FieldVariant::Home)),
+    (9, (1, FieldVariant::Home)),
+    (10, (0, FieldVariant::Home)),
   ]));
 
-  let bottom_position_map: HashMap<usize, (usize, FP)> = HashMap::from_iter(IntoIter::new([
-    (2, (0, FP::Main)),
-    (5, (1, FP::Main)),
-    (8, (2, FP::Main)),
-    (11, (3, FP::Main)),
-    (14, (4, FP::Main)),
-    (17, (5, FP::Main)),
-    (16, (6, FP::Main)),
-    (15, (7, FP::Main)),
-    (12, (8, FP::Main)),
-    (9, (9, FP::Main)),
-    (6, (10, FP::Main)),
-    (3, (11, FP::Main)),
-    (0, (12, FP::Main)),
-    (1, (4, FP::Home)),
-    (4, (3, FP::Home)),
-    (7, (2, FP::Home)),
-    (10, (1, FP::Home)),
-    (13, (0, FP::Home)),
+  let bottom_position_map: HashMap<usize, (usize, FieldVariant)> = HashMap::from_iter(IntoIter::new([
+    (2, (0, FieldVariant::Main)),
+    (5, (1, FieldVariant::Main)),
+    (8, (2, FieldVariant::Main)),
+    (11, (3, FieldVariant::Main)),
+    (14, (4, FieldVariant::Main)),
+    (17, (5, FieldVariant::Main)),
+    (16, (6, FieldVariant::Main)),
+    (15, (7, FieldVariant::Main)),
+    (12, (8, FieldVariant::Main)),
+    (9, (9, FieldVariant::Main)),
+    (6, (10, FieldVariant::Main)),
+    (3, (11, FieldVariant::Main)),
+    (0, (12, FieldVariant::Main)),
+    (1, (4, FieldVariant::Home)),
+    (4, (3, FieldVariant::Home)),
+    (7, (2, FieldVariant::Home)),
+    (10, (1, FieldVariant::Home)),
+    (13, (0, FieldVariant::Home)),
   ]));
 
   let (map, arrow_class): (_, String) = match position {
@@ -140,44 +134,27 @@ pub fn fields(props: &FieldsProps) -> Html {
     FieldsPosition::Right | FieldsPosition::Left => "grid-cols-6 grid-rows-3".into(),
   };
 
+  let fields = fields.iter().enumerate().map(|(index, _)| {
+    if let Some((raw_position, variant)) = map.get(&index) {
+      let position = raw_position + offset;
+      html! {
+        <Field
+          color={color.clone()}
+          color_background={*raw_position == 8 || *variant == FieldVariant::Home}
+          {position}
+          raw_position={*raw_position}
+          variant={variant.clone()}
+          arrow_class={arrow_class.clone()}
+        />
+      }
+    } else {
+      html! {}
+    }
+  });
+
   html! {
     <div class={classes!(String::from("w-full h-full grid"), classes)}>
-      {
-        fields.iter().enumerate().map(|(index, _field)| {
-          {
-            if let Some((raw_pos, field_type)) = map.get(&index) {
-              let position = raw_pos + offset;
-              let pawn_color = game.clone().and_then(|game| {
-                if *field_type == FP::Home {
-                  // TODO: add home pawns
-                  None
-                } else {
-                  game.fields.get(position).unwrap_or(&None).clone()
-                }
-              });
-              
-              html! {
-                <Field
-                  color={color.clone()}
-                  color_background={*raw_pos == 8 || *field_type == FP::Home}
-                >
-                  {
-                    if *raw_pos == 6 {
-                      html! { <Icon class={classes!(arrow_class.clone())} /> }
-                    } else if let Some(color) = pawn_color {
-                      html! { <Pawn {color} /> }
-                    } else {
-                      html! {}
-                    }
-                  }
-                </Field>
-              }
-            } else {
-              html! { <Field color={color.clone()} color_background={true}>{format!("{}", index)}</Field> }
-            }
-          }
-        }).collect::<Vec<Html>>()
-      }
+      { for fields }
     </div>
   }
 }

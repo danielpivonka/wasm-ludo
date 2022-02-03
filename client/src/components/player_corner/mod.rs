@@ -1,13 +1,13 @@
 use yew::prelude::*;
 
 use crate::components::pawn::Pawn;
+use crate::context::game_context::model::GameContext;
 use crate::models::color::Color;
 use crate::utils::{clamp, resolve_bg_color_class};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct PlayerCornerProps {
   pub color: Color,
-  pub pawn_count: u32,
   #[prop_or_default]
   pub on_promote: Option<Callback<Color>>,
 }
@@ -16,10 +16,11 @@ pub struct PlayerCornerProps {
 pub fn player_corner(props: &PlayerCornerProps) -> Html {
   let PlayerCornerProps {
     color,
-    pawn_count,
     on_promote,
   } = props.clone();
+  let GameContext {game, ..} = use_context::<GameContext>().expect("context not found");
 
+  let pawn_count = game.players.iter().find(|player| player.color == color).and_then(|player| Some(player.pawns_at_start)).unwrap_or(0);
   let pawn_count = clamp(pawn_count, 0, 4);
 
   let color_class = resolve_bg_color_class(&color);

@@ -5,7 +5,7 @@ use gloo::timers::callback::Timeout;
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct DieProps {
-  pub number: u32,
+  pub number: usize,
 }
 
 const SPIN_TIME: u32 = 1000;
