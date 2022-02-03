@@ -26,7 +26,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
     .find(|player| player.color == game.current_player)
     .unwrap()
     .id
-    .clone(); //TODO probably shouldn't unwrap
+    .clone(); //TODO probably shouldn't unwrap - game.get_player() uses unwrap() as well
   if current_player_id != msg.player_id {
     let message =
       serde_json::to_string(&ServerMessage::Error("It is not your turn".into())).unwrap();

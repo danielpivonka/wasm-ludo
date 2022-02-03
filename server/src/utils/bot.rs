@@ -112,8 +112,6 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     return game.execute_move(*piece_positions_to_move.last().unwrap(), dice_value, false);
   }
 
-  //TODO add method to check if piece can promote to finish
-
   let piece_positions_in_home_row: Vec<usize> = player
     .home
     .clone()
@@ -133,5 +131,5 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
   }
 
   // cannot move
-  MoveResult::Error(String::from(""))
+  MoveResult::Error(String::from("Can't move"))
 }
