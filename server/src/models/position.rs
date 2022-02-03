@@ -1,5 +1,7 @@
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Position{
-    position: usize,
-    is_home: bool,
-  }
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct Position {
+  pub position: usize,
+  pub is_home: bool,
+}

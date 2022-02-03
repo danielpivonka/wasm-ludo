@@ -8,7 +8,7 @@ use serde::Serialize;
 use std::sync::{Arc, Mutex};
 
 use crate::{
-  models::{game::Game, player::Player, color::Color},
+  models::{color::Color, game::Game, player::Player},
   types::Field,
 };
 
@@ -150,11 +150,11 @@ async fn update_game(
   let db_mutex = db.lock().unwrap();
   let game_collection = db_mutex.collection::<Game>("games");
   let option = FindOneAndUpdateOptions::builder()
-  .return_document(ReturnDocument::After)
-  .build();
+    .return_document(ReturnDocument::After)
+    .build();
   let res = game_collection
-  .find_one_and_update(filter, update, option)
-  .await;
+    .find_one_and_update(filter, update, option)
+    .await;
   match res {
     Ok(Some(game)) => Ok(game),
     Ok(None) => Err(anyhow!("Game doesnt exits")),
@@ -172,28 +172,26 @@ pub async fn update(
     Err(err) => return Err(anyhow!(err)),
   };
   let filter = doc! { "_id" : oid };
-  let res = update_game(db,filter, update)
-    .await;
+  let res = update_game(db, filter, update).await;
   match res {
     Ok(game) => Ok(game),
     Err(e) => Err(anyhow!(e)),
   }
 }
 
-
 pub async fn update_game_state(
   db: &Arc<Mutex<Database>>,
   game_id: &str,
   game: &Game,
 ) -> anyhow::Result<Game> {
-    let update_doc = match make_doc(game){
-      Ok(doc)=> doc,
-      _ =>return Err(anyhow!("Failed to create document")),
-    };
-    update(db,game_id,update_doc).await
+  let update_doc = match make_doc(game) {
+    Ok(doc) => doc,
+    _ => return Err(anyhow!("Failed to create document")),
+  };
+  update(db, game_id, update_doc).await
 }
 
-fn make_doc(game: &Game)-> anyhow::Result<Document>{
+fn make_doc(game: &Game) -> anyhow::Result<Document> {
   let fields = bson::to_bson(&game.fields)?;
   let players = bson::to_bson(&game.players)?;
   let current_player = bson::to_bson(&game.current_player)?;

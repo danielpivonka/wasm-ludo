@@ -23,7 +23,7 @@ const PROMOTE_PIECE: usize = 100;
 impl Game {
   pub fn new() -> Self {
     Game {
-      started_at: mongodb::bson::DateTime::now(),
+      started_at: mongodb::bson::DateTime::now(), //TODO should add created_at
       finished_at: None,
       fields: vec![None; 52],
       players: vec![],
@@ -41,6 +41,10 @@ impl Game {
       }
     }
     None
+  }
+
+  pub fn finish_game(&mut self) {
+    self.finished_at = Some(mongodb::bson::DateTime::now())
   }
 
   pub fn field_size(&self) -> usize {
@@ -149,18 +153,6 @@ impl Game {
   /// check if position where promoted piece would land is not occupied by our piece
   pub fn can_promote_piece(&self, dice_value: usize) -> bool {
     dice_value >= 6 && self.is_available_field(self.get_starting_position() + dice_value - 6)
-  }
-
-  // TODO: should we remove opponent on starting position when promoting a piece?
-  //  probably just skip as with other 'multi-hops' ? currently it's not being removed
-  pub fn promote_piece(&mut self, dice_value: usize) {
-    let mut position = self.get_starting_position();
-    // self.clear_field(position);
-    position += dice_value - 6;
-    self.clear_field(position);
-    let player = self.get_player_mut(self.current_player);
-    player.decrease_pieces_at_start();
-    self.fields[position] = Some(self.current_player)
   }
 
   // we can jump to a field, if it's either empty or occupied by opponent,
@@ -330,27 +322,6 @@ impl Game {
     dice_value: usize,
     home_column: bool,
   ) -> MoveResult {
-    // dice_value = 0 means player threw 3x6, therefore he gets skipped (should we create a message ?)
-    // MoveResult::SkipPlayer
-    if dice_value == 0 {
-      return MoveResult::Success(String::from("Throwing 3x6 means you have to wait a round."));
-    }
-
-    //TODO we need to get message if player wants to promote his piece (how?)
-    if position == PROMOTE_PIECE {
-      match self.can_promote_piece(dice_value) {
-        false => {
-          return MoveResult::Error(String::from(
-            "We can't promote - starting field is occupied by our piece.",
-          ))
-        }
-        true => {
-          self.promote_piece(dice_value);
-          return MoveResult::Success(String::from("Your piece has been promoted!"));
-        }
-      }
-    }
-
     // we are trying to moving piece from
     if home_column {
       return self.execute_move_from_home(position, dice_value);
@@ -387,6 +358,26 @@ impl Game {
             MoveResult::Success(String::from("Moved to a new position."))
           }
         }
+      }
+    }
+  }
+  pub fn promote_piece(&mut self, dice_value: usize) -> MoveResult {
+    //TODO we need to get message if player wants to promote his piece (how?)
+    match self.can_promote_piece(dice_value) {
+      false => {
+        return MoveResult::Error(String::from(
+          "We can't promote - starting field is occupied by our piece.",
+        ))
+      }
+      true => {
+        let mut position = self.get_starting_position();
+        // self.clear_field(position);
+        position += dice_value - 6;
+        self.clear_field(position);
+        let player = self.get_player_mut(self.current_player);
+        player.decrease_pieces_at_start();
+        self.fields[position] = Some(self.current_player);
+        return MoveResult::Success(String::from("Your piece has been promoted!"));
       }
     }
   }

@@ -1,19 +1,19 @@
-use super::super::actor::GameServerState;
 use crate::{
   components::{
     game::database,
-    game_server::utils::{send_message, send_message_to_room},
+    game_server::{
+      actor::GameServerState,
+      utils::{send_message, send_message_to_room},
+    },
   },
-  models::actor_messages::ClientActorMessage,
+  models::{actor_messages::ClientActorMessage, position::Position},
   utils::{
-    dice::get_dice_value,
     enums::{MoveResult, MoveType, ServerMessage},
     game::play_round,
-    player::get_available_positions,
   },
 };
 
-pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
+pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, position: Position) {
   let db_game = database::find_game(&state.db, &msg.room_id).await;
   let mut game = match db_game {
     Ok(Some(game)) => game,
@@ -37,9 +37,22 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   };
-  let result = play_round(&mut game, MoveType::Promote).await;
+  let result = play_round(&mut game, MoveType::Move(position)).await;
   match result {
     MoveResult::Success(_) => {
+      let game_state = database::update_game_state(&state.db, &msg.room_id, &game)
+        .await
+        .unwrap();
+      let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
+      send_message_to_room(
+        update_message.as_str(),
+        state.sessions.clone(),
+        state.rooms.clone(),
+        &msg.room_id,
+      );
+    }
+    MoveResult::Winner(_) => {
+      game.finish_game();
       let game_state = database::update_game_state(&state.db, &msg.room_id, &game)
         .await
         .unwrap();

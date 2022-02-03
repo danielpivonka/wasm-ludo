@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{color::Color, game::Game};
+use crate::models::{color::Color, game::Game, position::Position};
 
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ClientMessage {
   ThrowDice,
-  MoveFigure(usize, Option<Color>),
+  MoveFigure(Position),
   PromotePiece, // shouldn't need to pass color, since server should has attr current_player
   StartGame,
 }
@@ -43,5 +43,5 @@ pub enum MoveResult {
 }
 pub enum MoveType {
   Promote,
-  Move(Position)
+  Move(Position),
 }
