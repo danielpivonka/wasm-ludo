@@ -6,6 +6,7 @@ use gloo::console::log;
 use crate::components::board::Board;
 use crate::components::player::{Player, PlayerButtonPosition};
 use crate::context::game_context::model::GameContext;
+use crate::models::color::Color;
 use crate::models::messages::{ServerMessage, ClientMessage};
 
 
@@ -52,6 +53,9 @@ pub fn game(props: &GameProps) -> Html {
       });
     })
   };
+  let promote = {
+    Callback::from(|color:Color|log!(color.to_string()))
+  };
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
@@ -59,7 +63,7 @@ pub fn game(props: &GameProps) -> Html {
         <Player name={"John"} position={PlayerButtonPosition::Top} on_roll={roll} />
       </div>
       <div class="flex-grow">
-        <Board />
+        <Board on_promote={promote}/>
       </div>
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
         <Player name={"John"} position={PlayerButtonPosition::Bottom} />
