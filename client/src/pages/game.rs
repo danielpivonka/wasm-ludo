@@ -27,9 +27,12 @@ pub fn game(props: &GameProps) -> Html {
           move |message: ServerMessage| match message {
             ServerMessage::DiceValue(roll, repeat) => {
               log!(roll)
-            }
+            },
+            ServerMessage::GameStarted(_) => {
+              log!("game started recieved from server in subscribe callback");
+            },
             ServerMessage::Error(msg) => log!(msg),
-            _ => {}
+            message => log!(format!("unrecognized message : {}",serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()))),
           },
         ));
 

@@ -57,8 +57,8 @@ pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, positio
       // handle if next player is a bot
       move_bot(state.clone(), &msg, &mut game_state).await;
     }
-    MoveResult::Winner(_) => {
-      game.finish_game();
+    MoveResult::Winner(color) => {
+      game.finish_game(color);
       let game_state = database::update_game_state(&state.db, &msg.room_id, &game)
         .await
         .unwrap();

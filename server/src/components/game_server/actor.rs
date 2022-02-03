@@ -131,7 +131,17 @@ impl Handler<ClientActorMessage> for GameServer {
     actix_web::rt::spawn(async move {
       match message {
         ClientMessage::ThrowDice => roll_dice(state, msg).await,
-        ClientMessage::MoveFigure(position, color) => move_piece(state, msg, Position { position, is_home: color.is_some() }).await,
+        ClientMessage::MoveFigure(position, color) => {
+          move_piece(
+            state,
+            msg,
+            Position {
+              position,
+              is_home: color.is_some(),
+            },
+          )
+          .await
+        }
         ClientMessage::PromotePiece => promote_piece(state, msg).await,
         ClientMessage::StartGame => start_game(state, msg).await,
       };

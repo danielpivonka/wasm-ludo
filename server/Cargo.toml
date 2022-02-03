@@ -18,6 +18,7 @@ serde = "1.0.133"
 serde_json = "1.0.75"
 dotenv = "0.15.0"
 env_logger = "0.9.0"
-mongodb = "2.1.0"
+mongodb = { version = "2.1.0", features = ["bson-chrono-0_4"] }
+chrono = "0.4.19"
 futures = "0.3.19"
 rand = "0.8.4"

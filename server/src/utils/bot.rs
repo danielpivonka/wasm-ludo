@@ -39,7 +39,6 @@ pub fn create_bot_name() -> String {
   )
 }
 
-
 // since make_a_move_bot() doesn't call play_round() - which takes care of game.update_next_player(),
 //   we have to take care of it in make_a_move_bot() separately
 // if bot made a successful move, we should move onto the next player
@@ -51,7 +50,7 @@ fn handle_bot_move_result(game: &mut Game, move_result: MoveResult) -> MoveResul
       MoveResult::Success(msg)
     }
     MoveResult::Winner(color) => {
-      game.update_current_player();
+      // game.update_current_player();
       MoveResult::Winner(color)
     }
   }

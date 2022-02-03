@@ -1,4 +1,3 @@
-use mongodb::bson::DateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::models::color::Color;
@@ -8,10 +7,8 @@ use crate::utils::enums::MoveResult;
 use super::player::Player;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Game {
-  // #[serde(serialize_with = "serialize_hex_string_as_object_id")]
-  // pub oid: String,
-  pub started_at: DateTime,
-  pub finished_at: Option<DateTime>,
+  pub started: bool,
+  pub winner: Option<Color>,
   pub fields: Vec<Field>,
   pub players: Vec<Player>,
   pub current_player: Color,
@@ -23,8 +20,8 @@ const PROMOTE_PIECE: usize = 100;
 impl Game {
   pub fn new() -> Self {
     Game {
-      started_at: mongodb::bson::DateTime::now(), //TODO should add created_at
-      finished_at: None,
+      started: false,
+      winner: None,
       fields: vec![None; 52],
       players: vec![],
       current_player: Color::ordered().first().unwrap().to_owned(),
@@ -43,8 +40,8 @@ impl Game {
     None
   }
 
-  pub fn finish_game(&mut self) {
-    self.finished_at = Some(mongodb::bson::DateTime::now())
+  pub fn finish_game(&mut self, color: Color) {
+    self.winner = Some(color)
   }
 
   pub fn field_size(&self) -> usize {

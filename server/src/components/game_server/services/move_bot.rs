@@ -22,8 +22,8 @@ pub async fn move_bot(state: GameServerState, msg: &ClientActorMessage, game_sta
           &msg.room_id,
         );
       }
-      MoveResult::Winner(_) => {
-        game_state.finish_game();
+      MoveResult::Winner(color) => {
+        game_state.finish_game(color);
         let game_state = database::update_game_state(&state.db, &msg.room_id, game_state)
           .await
           .unwrap();

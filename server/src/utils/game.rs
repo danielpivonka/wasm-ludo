@@ -14,6 +14,24 @@ use std::sync::{Arc, Mutex};
 
 use super::enums::MoveType;
 
+pub fn fill_with_bots(players: Vec<Player>) -> Vec<Player> {
+  let colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow];
+  colors.iter().fold(Vec::new(), |mut acc, color| {
+    if let Some(player) = players.iter().cloned().find(|player| player.color == *color) {
+      acc.push(player);
+      acc
+    } else {
+      acc.push(Player::new(
+        "0".to_string(),
+        create_bot_name(),
+        *color,
+        true,
+      ));
+      acc
+    }
+  })
+}
+
 pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
   let mut colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
   let mut players = vec![];
@@ -42,15 +60,16 @@ pub async fn play_round(game: &mut Game, move_type: MoveType) -> MoveResult {
   let player = game.get_current_player();
 
   let mut move_result = make_a_move(game, move_type);
-
+  
+  if let Some(winner) = game.check_winner() {
+    move_result = MoveResult::Winner(winner);
+  }
+  
   if let MoveResult::Success(_) = move_result {
     game.update_current_player();
     game.dice_throws.clear();
   }
-
-  if let Some(winner) = game.check_winner() {
-    move_result = MoveResult::Winner(winner);
-  }
+  
   move_result
   // match move_result {
   //   MoveResult::Winner(winner) => {

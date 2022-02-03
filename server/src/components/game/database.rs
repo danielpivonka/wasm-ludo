@@ -98,7 +98,7 @@ pub async fn start_game(db: &Arc<Mutex<Database>>, game_id: &str) -> anyhow::Res
     Err(err) => return Err(anyhow!(err)),
   };
   let filter = doc! { "_id" : oid };
-  let update = doc! { "$set": { "started_at" : mongodb::bson::DateTime::now() } };
+  let update = doc! { "$set": { "started" : true } };
   return update_game(db, filter, update).await;
 }
 

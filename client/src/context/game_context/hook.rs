@@ -5,6 +5,7 @@ use futures::{SinkExt, StreamExt};
 use reqwasm::websocket::futures::WebSocket;
 use reqwasm::websocket::Message;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::console::log;
 use yew::prelude::*;
 
 use gloo::console::log;
@@ -25,6 +26,23 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let game_id = props.game_id.clone();
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
   let game = use_state::<Game, _>(|| Game::new());
+
+  let handle_message = {
+    let game = game.clone();
+    Callback::from(move |message: ServerMessage| {
+      match message {
+        ServerMessage::GameUpdate(new_game) => game.set(new_game),
+        ServerMessage::GameStarted(new_game) => {
+          log!("game started recieved from server");
+          game.set(new_game)
+        },
+        ServerMessage::Error(msg) => log!(msg),
+        message => {
+          log!("message fell through", serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()));
+        },
+      }
+    })
+  };
 
   {
     let sender = sender.clone();
@@ -54,9 +72,13 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
         spawn_local(async move {
           // TODO: handle errors as well
           while let Some(Ok(Message::Text(text))) = read.next().await {
+            log!("message: ", text.clone());
             if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
+              handle_message.emit(message.clone());
               callback.emit(message.clone());
               log!(format!("1. {:?}", message.clone()))
+            } else {
+              log!("parsing failed");
             }
           }
           log!("WebSocket Closed")

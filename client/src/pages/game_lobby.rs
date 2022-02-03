@@ -40,7 +40,7 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
         subscribe.emit(Callback::from(
           move |message: ServerMessage| match message {
             ServerMessage::PlayerCountChange(count) => player_count.set(count),
-            ServerMessage::GameStarted => {
+            ServerMessage::GameStarted(_) => {
               history.push(GameRoute::Game { id: id.clone() });
             }
             ServerMessage::Error(msg) => log!(msg),
