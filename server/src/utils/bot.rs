@@ -39,6 +39,24 @@ pub fn create_bot_name() -> String {
   )
 }
 
+
+// since make_a_move_bot() doesn't call play_round() - which takes care of game.update_next_player(),
+//   we have to take care of it in make_a_move_bot() separately
+// if bot made a successful move, we should move onto the next player
+fn handle_bot_move_result(game: &mut Game, move_result: MoveResult) -> MoveResult {
+  match move_result {
+    MoveResult::Error(msg) => MoveResult::Error(msg),
+    MoveResult::Success(msg) => {
+      game.update_current_player();
+      MoveResult::Success(msg)
+    }
+    MoveResult::Winner(color) => {
+      game.update_current_player();
+      MoveResult::Winner(color)
+    }
+  }
+}
+
 /// Algorithm:
 /// 1. try to jump to home row
 /// 2. try to jump to finish
@@ -62,7 +80,8 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
 
   // we can choose first piece to move, since all of them will end up in home
   if !piece_positions_to_jump_home.is_empty() {
-    return game.execute_move(piece_positions_to_jump_home[0], dice_value, false);
+    let move_result = game.execute_move(piece_positions_to_jump_home[0], dice_value, false);
+    return handle_bot_move_result(game, move_result);
   }
 
   let piece_positions_to_jump_to_finish: Vec<usize> = positions
@@ -73,7 +92,8 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
 
   // we can choose first piece to move, since all of them will end up in home
   if !piece_positions_to_jump_to_finish.is_empty() {
-    return game.execute_move(piece_positions_to_jump_to_finish[0], dice_value, false);
+    let move_result = game.execute_move(piece_positions_to_jump_to_finish[0], dice_value, false);
+    return handle_bot_move_result(game, move_result);
   }
 
   // prioritize moving other pieces to promoting new one if bot has more pieces in game
@@ -81,8 +101,9 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     && dice_value > 6
     && game.can_promote_piece(dice_value)
   {
-    game.promote_piece(dice_value);
-    return MoveResult::Success(String::from("Piece promoted."));
+    let move_result = game.promote_piece(dice_value);
+    return handle_bot_move_result(game, move_result);
+    // return MoveResult::Success(String::from("Piece promoted."));
   }
 
   //let piece_positions_to_remove_enemy = game.get_players_pieces_positions(&game.current_player).clone();
@@ -94,12 +115,14 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
 
   // we can choose a random piece to move (i.e. is not blocked).. or a piece that's closest to home for example
   if !piece_positions_to_remove_enemy.is_empty() {
-    return game.execute_move(piece_positions_to_remove_enemy[0], dice_value, false);
+    let move_result = game.execute_move(piece_positions_to_remove_enemy[0], dice_value, false);
+    return handle_bot_move_result(game, move_result);
   }
 
   if dice_value > 6 && game.can_promote_piece(dice_value) {
-    game.promote_piece(dice_value);
-    return MoveResult::Success(String::from("Piece promoted."));
+    let move_result = game.promote_piece(dice_value);
+    return handle_bot_move_result(game, move_result);
+    // return MoveResult::Success(String::from("Piece promoted."));
   }
 
   let piece_positions_to_move: Vec<usize> = positions
@@ -109,10 +132,10 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
 
   // choose piece closest to finish that is not in home
   if !piece_positions_to_move.is_empty() {
-    return game.execute_move(*piece_positions_to_move.last().unwrap(), dice_value, false);
+    let move_result =
+      game.execute_move(*piece_positions_to_move.last().unwrap(), dice_value, false);
+    return handle_bot_move_result(game, move_result);
   }
-
-  //TODO add method to check if piece can promote to finish
 
   let piece_positions_in_home_row: Vec<usize> = player
     .home
@@ -125,13 +148,19 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     .collect();
 
   if !piece_positions_in_home_row.is_empty() {
-    return game.execute_move(
+    let move_result = game.execute_move(
       *piece_positions_in_home_row.last().unwrap(),
       dice_value,
       true,
     );
+    return handle_bot_move_result(game, move_result);
   }
 
-  // cannot move
-  MoveResult::Error(String::from(""))
+  // no moves found for player/bot, should be skipped - we have to return MoveResult::Success,
+  //   for move_bot() in move_bot.rs to work properly
+  // i.e. we just switch to the next player without making any changes (has no way of giving this
+  //   info to front-end as of now ?)
+  game.update_current_player();
+  MoveResult::Success("Player skipped.".into())
+  // MoveResult::Error(String::from("Can't move"))
 }

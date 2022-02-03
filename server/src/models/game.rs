@@ -27,7 +27,7 @@ impl Game {
       finished_at: None,
       fields: vec![None; 52],
       players: vec![],
-      current_player: Color::ordered().first().unwrap().clone(),
+      current_player: Color::ordered().first().unwrap().to_owned(),
       dice_throws: vec![],
     }
   }
@@ -364,11 +364,9 @@ impl Game {
   pub fn promote_piece(&mut self, dice_value: usize) -> MoveResult {
     //TODO we need to get message if player wants to promote his piece (how?)
     match self.can_promote_piece(dice_value) {
-      false => {
-        return MoveResult::Error(String::from(
-          "We can't promote - starting field is occupied by our piece.",
-        ))
-      }
+      false => MoveResult::Error(String::from(
+        "We can't promote - starting field is occupied by our piece.",
+      )),
       true => {
         let mut position = self.get_starting_position();
         // self.clear_field(position);
@@ -377,7 +375,7 @@ impl Game {
         let player = self.get_player_mut(self.current_player);
         player.decrease_pieces_at_start();
         self.fields[position] = Some(self.current_player);
-        return MoveResult::Success(String::from("Your piece has been promoted!"));
+        MoveResult::Success(String::from("Your piece has been promoted!"))
       }
     }
   }

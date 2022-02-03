@@ -1,3 +1,5 @@
+use crate::components::game_server::services::move_bot::move_bot;
+use crate::utils::bot::make_a_move_bot;
 use crate::{
   components::{
     game::database,
@@ -40,16 +42,20 @@ pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, positio
   let result = play_round(&mut game, MoveType::Move(position)).await;
   match result {
     MoveResult::Success(_) => {
-      let game_state = database::update_game_state(&state.db, &msg.room_id, &game)
+      let mut game_state = database::update_game_state(&state.db, &msg.room_id, &game)
         .await
         .unwrap();
-      let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
+      let update_message =
+        serde_json::to_string(&ServerMessage::GameUpdate(game_state.clone())).unwrap();
       send_message_to_room(
         update_message.as_str(),
         state.sessions.clone(),
         state.rooms.clone(),
         &msg.room_id,
       );
+
+      // handle if next player is a bot
+      move_bot(state.clone(), &msg, &mut game_state).await;
     }
     MoveResult::Winner(_) => {
       game.finish_game();
