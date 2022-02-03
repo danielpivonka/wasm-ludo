@@ -137,7 +137,7 @@ pub async fn update_current_player(
   };
   let current_player_bson = bson::to_bson(&current_player)?;
   let filter = doc! { "_id" : oid };
-  let update = doc! { "$push": { "current_player": current_player_bson } };
+  let update = doc! { "$set": { "current_player": current_player_bson } };
   return update_game(db, filter, update).await;
 }
 
