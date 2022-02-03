@@ -5,7 +5,10 @@ use std::{
   sync::{Arc, Mutex},
 };
 
-use super::{services::start_game::start_game, utils::send_message_to_room};
+use super::{
+  services::{roll_die::roll_dice, start_game::start_game},
+  utils::send_message_to_room,
+};
 use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
 use crate::utils::enums::ClientMessage;
 use crate::utils::enums::ServerMessage;
@@ -121,7 +124,7 @@ impl Handler<ClientActorMessage> for GameServer {
     let state = self.get_state();
     actix_web::rt::spawn(async move {
       match message {
-        ClientMessage::ThrowDice => todo!(),
+        ClientMessage::ThrowDice => roll_dice(state, msg).await,
         ClientMessage::MoveFigure(_, _) => todo!(),
         ClientMessage::PromotePiece => todo!(),
         ClientMessage::StartGame => start_game(state, msg).await,

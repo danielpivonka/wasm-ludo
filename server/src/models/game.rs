@@ -27,7 +27,7 @@ impl Game {
       finished_at: None,
       fields: vec![None; 52],
       players: vec![],
-      current_player: Color::Red,
+      current_player: Color::ordered().first().unwrap().clone(),
       dice_throws: vec![],
     }
   }
