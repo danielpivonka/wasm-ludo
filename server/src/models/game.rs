@@ -146,14 +146,13 @@ impl Game {
   }
 
   // add check for player.pawns_at_start > 0 ?
-  // can jump to starting position
   /// check if position where promoted piece would land is not occupied by our piece
   pub fn can_promote_piece(&self, dice_value: usize) -> bool {
-    self.is_available_field(self.get_starting_position() + dice_value - 6)
+    dice_value >= 6 && self.is_available_field(self.get_starting_position() + dice_value - 6)
   }
 
   // TODO: should we remove opponent on starting position when promoting a piece?
-  //  probably just skip as with other 'multi-hops' ? currently it's being removed
+  //  probably just skip as with other 'multi-hops' ? currently it's not being removed
   pub fn promote_piece(&mut self, dice_value: usize) {
     let mut position = self.get_starting_position();
     // self.clear_field(position);
@@ -460,6 +459,7 @@ impl Game {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::utils::player::get_available_positions;
   use std::borrow::Borrow;
 
   fn get_empty_game() -> Game {
@@ -831,14 +831,42 @@ mod tests {
   }
 
   #[test]
-  fn move_to_finish_check_winner() {}
+  fn move_to_finish_check_winner() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    let dice_value = 3;
+    let starting_pos = 2;
+    let player = game.get_current_player_mut();
+    player.home[starting_pos] = Some(Color::Yellow);
+    player.pawns_at_finish = 3;
+
+    let mut game = game.clone();
+    match game.execute_move(starting_pos, dice_value, true) {
+      MoveResult::Error(_) => assert!(false),
+      MoveResult::Winner(_) => assert!(true),
+      MoveResult::Success(_) => assert!(true),
+    }
+
+    let winner = game.check_winner();
+    assert!(winner.is_some());
+    assert_eq!(winner.unwrap(), Color::Yellow);
+  }
 
   #[test]
   fn invalid_moves() {}
 
+  fn compare_vectors(a: &Vec<usize>, b: &Vec<usize>) {
+    assert_eq!(a.len(), b.len());
+    for n in a {
+      assert!(b.contains(n));
+    }
+  }
+
   #[test]
   fn available_positions() {
     let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
 
     // Yellow starts at position 8, the field in front of home is at position 6
     game.fields[9] = Some(Color::Yellow);
@@ -846,7 +874,121 @@ mod tests {
     game.fields[6] = Some(Color::Yellow);
 
     let mut yellow_player = game.get_player_mut(Color::Yellow);
-    yellow_player.pawns_at_start = 1;
     yellow_player.home[2] = Some(Color::Yellow);
+    yellow_player.pawns_at_start = 0;
+
+    let dice_value = 1;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![6, 9, 12], vec![2], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    let dice_value = 3;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![12], vec![2], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    let dice_value = 4;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![6, 9, 12], vec![], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    let dice_value = 6;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![6, 9, 12], vec![], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+  }
+
+  #[test]
+  fn available_positions_promote() {
+    let mut game = get_empty_game();
+    game.current_player = Color::Yellow;
+
+    // Yellow starts at position 8
+    game.fields[9] = Some(Color::Yellow);
+
+    let mut yellow_player = game.get_player_mut(Color::Yellow);
+    yellow_player.pawns_at_start = 3;
+
+    let dice_value = 11;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![9], vec![], true);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    // blocked by our piece
+    let dice_value = 7;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![9], vec![], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    // // if there is an opponent piece, we don't get blocked (promotion)
+    game.fields[9] = Some(Color::Green);
+    let dice_value = 7;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![], vec![], true);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
+
+    // if there is an opponent piece, we don't get blocked (on board)
+    game.fields[9] = Some(Color::Yellow);
+    game.fields[12] = Some(Color::Green);
+    let dice_value = 3;
+    let (actual_board_pos, actual_home_pos, actual_can_promote) =
+      get_available_positions(&game, dice_value);
+    let (expected_board_pos, expected_home_pos, expected_can_promote): (
+      Vec<usize>,
+      Vec<usize>,
+      bool,
+    ) = (vec![9], vec![], false);
+    compare_vectors(&actual_board_pos, &expected_board_pos);
+    compare_vectors(&actual_home_pos, &expected_home_pos);
+    assert_eq!(actual_can_promote, expected_can_promote);
   }
 }

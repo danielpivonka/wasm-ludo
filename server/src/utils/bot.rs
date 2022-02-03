@@ -41,11 +41,12 @@ pub fn create_bot_name() -> String {
 
 /// Algorithm:
 /// 1. try to jump to home row
-/// 2. try to add new piece if only 1 is in game
-/// 3. try to remove enemy's piece
-/// 4. add new piece to game
-/// 5. move any piece in game
-/// 6. move piece in home row
+/// 2. try to jump to finish
+/// 3. try to add new piece if only 1 is in game
+/// 4. try to remove enemy's piece
+/// 5. add new piece to game
+/// 6. move any piece in game
+/// 7. move piece in home row
 pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
   let player = game.get_player(game.current_player);
 
@@ -62,6 +63,17 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
   // we can choose first piece to move, since all of them will end up in home
   if !piece_positions_to_jump_home.is_empty() {
     return game.execute_move(piece_positions_to_jump_home[0], dice_value, false);
+  }
+
+  let piece_positions_to_jump_to_finish: Vec<usize> = positions
+    .clone()
+    .into_iter()
+    .filter(|position| game.can_reach_finish(*position, dice_value))
+    .collect();
+
+  // we can choose first piece to move, since all of them will end up in home
+  if !piece_positions_to_jump_to_finish.is_empty() {
+    return game.execute_move(piece_positions_to_jump_to_finish[0], dice_value, false);
   }
 
   // prioritize moving other pieces to promoting new one if bot has more pieces in game
