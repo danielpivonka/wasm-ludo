@@ -1,7 +1,6 @@
 use stylist::{css, yew::styled_component};
 use yew::prelude::*;
 
-
 #[styled_component(BoardMiddle)]
 pub fn board_middle() -> Html {
   html! {

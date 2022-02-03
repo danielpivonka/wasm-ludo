@@ -1,14 +1,13 @@
 use futures::SinkExt;
+use gloo::console::log;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use gloo::console::log;
 
 use crate::components::board::Board;
 use crate::components::player::{Player, PlayerButtonPosition};
 use crate::context::game_context::model::GameContext;
 use crate::models::color::Color;
-use crate::models::messages::{ServerMessage, ClientMessage};
-
+use crate::models::messages::{ClientMessage, ServerMessage};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct GameProps {
@@ -26,9 +25,9 @@ pub fn game(props: &GameProps) -> Html {
       move |_: &[u32; 0]| {
         subscribe.emit(Callback::from(
           move |message: ServerMessage| match message {
-            ServerMessage::DiceValue(roll,repeat) => {
+            ServerMessage::DiceValue(roll, repeat) => {
               log!(roll)
-            },
+            }
             ServerMessage::Error(msg) => log!(msg),
             _ => {}
           },
@@ -39,8 +38,6 @@ pub fn game(props: &GameProps) -> Html {
       [],
     );
   }
-
-
 
   let roll = {
     Callback::from(move |_| {
@@ -53,9 +50,7 @@ pub fn game(props: &GameProps) -> Html {
       });
     })
   };
-  let promote = {
-    Callback::from(|color:Color|log!(color.to_string()))
-  };
+  let promote = { Callback::from(|color: Color| log!(color.to_string())) };
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">

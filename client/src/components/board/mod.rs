@@ -10,12 +10,9 @@ pub struct BoardProps {
   pub on_promote: Option<Callback<Color>>,
 }
 
-
 #[function_component(Board)]
 pub fn board(props: &BoardProps) -> Html {
-  let BoardProps {
-    on_promote,
-  } = props.clone();
+  let BoardProps { on_promote } = props.clone();
   let fields = vec![None; 18];
 
   html! {
