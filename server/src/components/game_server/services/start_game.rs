@@ -18,7 +18,7 @@ pub async fn start_game(state: GameServerState, msg: ClientActorMessage) {
     return;
   };
 
-  let message = serde_json::to_string(&ServerMessage::GameStarted).unwrap();
+  let message = serde_json::to_string(&ServerMessage::GameStarted(res.unwrap())).unwrap();
 
   send_message_to_room(message.as_str(), state.sessions, state.rooms, &msg.room_id);
 }

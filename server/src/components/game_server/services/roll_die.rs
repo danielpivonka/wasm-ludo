@@ -5,7 +5,7 @@ use crate::{
     game_server::utils::{send_message, send_message_to_room},
   },
   models::actor_messages::ClientActorMessage,
-  utils::{dice::get_dice_value, enums::ServerMessage},
+  utils::{dice::get_dice_value, enums::ServerMessage,player::get_available_positions},
 };
 
 pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
@@ -42,8 +42,27 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   };
+  let mut game = res.unwrap();
+  let can_roll_again = roll==6 && game.dice_throws.iter().len()!=3;
+  let roll_message = serde_json::to_string(&ServerMessage::DiceValue(roll, can_roll_again)).unwrap();
+  send_message_to_room(roll_message.as_str(), state.sessions.clone(), state.rooms.clone(), &msg.room_id);
+  let rolls_sum:usize = game.dice_throws.iter().sum();
 
-  let message = serde_json::to_string(&ServerMessage::DiceValue(roll, false)).unwrap();
+  if rolls_sum == 18 {
+    game.update_current_player();
+    game.dice_throws.clear();
+    let game_state = database::update_game_state(&state.db, &msg.room_id,&game).await.unwrap(); //TODO handle errors
 
-  send_message_to_room(message.as_str(), state.sessions, state.rooms, &msg.room_id);
+    let skip_message = serde_json::to_string(&ServerMessage::SkipPlayer).unwrap();
+    send_message_to_room(skip_message.as_str(), state.sessions.clone(), state.rooms.clone(), &msg.room_id);
+
+    let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
+    send_message_to_room(update_message.as_str(), state.sessions.clone(), state.rooms.clone(), &msg.room_id);
+  }
+
+  else if !can_roll_again{
+    let possible_moves =  get_available_positions(&game, rolls_sum);
+    let roll_results_message = serde_json::to_string(&ServerMessage::AvailablePositions(possible_moves.0, possible_moves.1,possible_moves.2)).unwrap();
+    send_message_to_room(roll_results_message.as_str(), state.sessions.clone(), state.rooms.clone(), &msg.room_id);
+  }
 }

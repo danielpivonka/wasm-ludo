@@ -21,25 +21,25 @@ pub fn board(props: &BoardProps) -> Html {
         <PlayerCorner color={Color::Yellow} pawn_count={1} on_promote={on_promote.clone()}/>
       </div>
       <div class="border border-neutral-300">
-        <Fields position={FieldsPosition::Top} color={Color::Blue} fields={fields.clone()} />
+        <Fields position={FieldsPosition::Top} color={Color::Blue} fields={fields.clone()} offset={13} />
       </div>
       <div class="border border-neutral-300">
         <PlayerCorner color={Color::Blue} pawn_count={2} on_promote={on_promote.clone()}/>
       </div>
       <div class="border border-neutral-300">
-        <Fields position={FieldsPosition::Left} color={Color::Yellow} fields={fields.clone()} />
+        <Fields position={FieldsPosition::Left} color={Color::Yellow} fields={fields.clone()} offset={0} />
       </div>
       <div class="border border-neutral-300">
         <BoardMiddle />
       </div>
       <div class="border border-neutral-300">
-        <Fields position={FieldsPosition::Right} color={Color::Red} fields={fields.clone()} />
+        <Fields position={FieldsPosition::Right} color={Color::Red} fields={fields.clone()} offset={26} />
       </div>
       <div class="border border-neutral-300">
         <PlayerCorner color={Color::Green} pawn_count={3} on_promote={on_promote.clone()}/>
       </div>
       <div class="border border-neutral-300">
-        <Fields position={FieldsPosition::Bottom} color={Color::Green} fields={fields.clone()} />
+        <Fields position={FieldsPosition::Bottom} color={Color::Green} fields={fields.clone()} offset={39} />
       </div>
       <div class="border border-neutral-300">
         <PlayerCorner color={Color::Red} pawn_count={4} on_promote={on_promote.clone()}/>
