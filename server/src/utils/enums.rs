@@ -5,7 +5,7 @@ use crate::models::{color::Color, game::Game, position::Position};
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ClientMessage {
   ThrowDice,
-  MoveFigure(Position),
+  MoveFigure(usize, Option<Color>),
   PromotePiece, // shouldn't need to pass color, since server should has attr current_player
   StartGame,
 }
