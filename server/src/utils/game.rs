@@ -65,6 +65,9 @@ pub async fn play_round(
     MoveResult::Winner(winner) => {
       // TODO: handle errors
       finish_game(db, game_id.as_str()).await.ok();
+      update_board(db, game_id.as_str(), game.fields.clone())
+        .await
+        .ok();
       MoveResult::Winner(winner)
     }
     MoveResult::Success(msg) => {
