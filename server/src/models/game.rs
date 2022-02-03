@@ -23,7 +23,7 @@ const PROMOTE_PIECE: usize = 100;
 impl Game {
   pub fn new() -> Self {
     Game {
-      started_at: mongodb::bson::DateTime::now(),
+      started_at: mongodb::bson::DateTime::now(), //TODO should add created_at
       finished_at: None,
       fields: vec![None; 52],
       players: vec![],
@@ -41,6 +41,10 @@ impl Game {
       }
     }
     None
+  }
+
+  pub fn finish_game(&mut self) {
+    self.finished_at = Some(mongodb::bson::DateTime::now())
   }
 
   pub fn field_size(&self) -> usize {

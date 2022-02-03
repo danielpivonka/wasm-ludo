@@ -6,10 +6,16 @@ use std::{
 };
 
 use super::{
-  services::{roll_die::roll_dice, start_game::start_game},
+  services::{
+    move_piece::move_piece, promote_piece::promote_piece, roll_die::roll_dice,
+    start_game::start_game,
+  },
   utils::send_message_to_room,
 };
-use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
+use crate::models::{
+  actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage},
+  position::Position,
+};
 use crate::utils::enums::ClientMessage;
 use crate::utils::enums::ServerMessage;
 
@@ -125,8 +131,8 @@ impl Handler<ClientActorMessage> for GameServer {
     actix_web::rt::spawn(async move {
       match message {
         ClientMessage::ThrowDice => roll_dice(state, msg).await,
-        ClientMessage::MoveFigure(_, _) => todo!(),
-        ClientMessage::PromotePiece => todo!(),
+        ClientMessage::MoveFigure(position) => move_piece(state, msg, position).await,
+        ClientMessage::PromotePiece => promote_piece(state, msg).await,
         ClientMessage::StartGame => start_game(state, msg).await,
       };
     });
