@@ -110,7 +110,16 @@ pub async fn finish_game(db: &Arc<Mutex<Database>>, game_id: &str) -> anyhow::Re
   let update = doc! { "$set": { "finished_at" : mongodb::bson::DateTime::now() } };
   return update_game(db, filter, update).await;
 }
-
+pub async fn add_dice_roll(db: &Arc<Mutex<Database>>, game_id: &str,roll: usize)-> anyhow::Result<Game>{
+  let oid = match ObjectId::parse_str(game_id) {
+    Ok(res) => res,
+    Err(err) => return Err(anyhow!(err)),
+  };
+  let serialized_roll = bson::to_bson(&roll)?;
+  let filter = doc! { "_id" : oid };
+  let update = doc! { "$push": { "dice_throws": serialized_roll } };
+  return update_game(db, filter, update).await;
+}
 async fn update_game(
   db: &Arc<Mutex<Database>>,
   filter: Document,
