@@ -7,7 +7,7 @@ pub fn make_a_move_player(game: &mut Game, position: usize, is_home: bool) -> Mo
   game.execute_move(position, dice_value, is_home)
 }
 
-pub fn get_available_moves(game: &Game, dice_value: usize) -> (Vec<usize>, Vec<usize>, bool) {
+pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, Vec<usize>, bool) {
   let positions = game.get_players_pieces_positions(&game.current_player);
   let player = game.get_current_player();
 
@@ -18,11 +18,18 @@ pub fn get_available_moves(game: &Game, dice_value: usize) -> (Vec<usize>, Vec<u
     .collect();
 
   let mut piece_positions_to_jump_home: Vec<usize> = positions
+    .clone()
     .into_iter()
     .filter(|position| game.can_jump_to_home(*position, dice_value))
     .collect();
 
+  let mut piece_positions_to_jump_to_finish: Vec<usize> = positions
+    .into_iter()
+    .filter(|position| game.can_reach_finish(*position, dice_value))
+    .collect();
+
   positions_on_board.append(&mut piece_positions_to_jump_home);
+  positions_on_board.append(&mut piece_positions_to_jump_to_finish);
 
   let can_promote = player.pawns_at_start > 0 && game.can_promote_piece(dice_value);
 
