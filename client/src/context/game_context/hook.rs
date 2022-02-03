@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use futures::channel::mpsc;
 use futures::{SinkExt, StreamExt};
 use reqwasm::websocket::futures::WebSocket;
@@ -22,7 +24,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let sender = use_state(|| None);
   let game_id = props.game_id.clone();
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
-  let game = use_state::<Option<Game>, _>(|| None);
+  let game = use_state::<Game, _>(|| Game::new());
 
   {
     let sender = sender.clone();
@@ -79,10 +81,17 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
     })
   };
 
+  let players = game.players.iter().fold(HashMap::new(), |mut acc, player| {
+    acc.insert(player.color.clone(), player.clone());
+    acc
+  });
+
   GameContext {
     game: (*game).clone(),
     player_count: 0,
     subscribe,
     sender: (*sender).clone(),
+    players,
+    current_player: (*game).current_player.clone(),
   }
 }

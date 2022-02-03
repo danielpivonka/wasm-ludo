@@ -50,19 +50,21 @@ pub fn game(props: &GameProps) -> Html {
       });
     })
   };
+
   let promote = { Callback::from(|color: Color| log!(color.to_string())) };
+
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={"John"} position={PlayerButtonPosition::Bottom} />
-        <Player name={"John"} position={PlayerButtonPosition::Top} on_roll={roll} />
+        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
+        <Player name={"John"} position={PlayerButtonPosition::Top} on_roll={roll} color={Color::Blue} />
       </div>
       <div class="flex-grow">
         <Board on_promote={promote}/>
       </div>
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={"John"} position={PlayerButtonPosition::Bottom} />
-        <Player name={"John"} position={PlayerButtonPosition::Top} />
+        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Green} />
+        <Player name={"John"} position={PlayerButtonPosition::Top} color={Color::Red} />
       </div>
     </div>
   }

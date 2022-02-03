@@ -14,3 +14,17 @@ pub struct Player {
   pub home: Vec<FieldType>,
   pub is_bot: bool,
 }
+
+impl Player {
+  pub fn new() -> Self {
+    Player {
+      id: "sdfsdf".into(),
+      name: "sdfwef".into(),
+      color: Color::Red,
+      pawns_at_start: 2,
+      pawns_at_finish: 4,
+      home: vec![Some(Color::Red), Some(Color::Red), Some(Color::Red)],
+      is_bot: false,
+    }
+  }
+}

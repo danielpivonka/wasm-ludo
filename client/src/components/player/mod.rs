@@ -1,10 +1,12 @@
-use gloo::timers::callback::Interval;
+use gloo::timers::callback::{Interval, Timeout};
 use yew::prelude::*;
 
 use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::die::Die;
 use crate::components::icon::Icon;
+use crate::context::game_context::model::GameContext;
+use crate::models::color::Color;
 
 #[derive(PartialEq, Clone)]
 pub enum PlayerButtonPosition {
@@ -19,6 +21,7 @@ pub struct PlayerProps {
   pub position: PlayerButtonPosition,
   #[prop_or_default]
   pub on_roll: Option<Callback<MouseEvent>>,
+  pub color: Color,
 }
 
 #[function_component(Player)]
@@ -27,8 +30,15 @@ pub fn player(props: &PlayerProps) -> Html {
     name,
     position,
     on_roll,
+    color,
   } = props.clone();
-  let die_number = use_state::<u32, _>(|| 1);
+  let GameContext {
+    current_player,
+    game,
+    ..
+  } = use_context::<GameContext>().expect("context not found");
+  let die_number = use_state::<usize, _>(|| 1);
+  let throws = game.dice_throws;
 
   let icon = html! { <Icon class="fas fa-sync-alt" /> };
 
@@ -40,16 +50,47 @@ pub fn player(props: &PlayerProps) -> Html {
 
   {
     let die_number = die_number.clone();
-    use_effect(move || {
-      let interval = Interval::new(10000, move || {
-        die_number.set(*die_number + 1);
-      });
+    let throws = throws.clone();
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
+      move |throws| {
+        if current_player == color {
+          let timeouts = throws
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(index, throw)| {
+              let die_number = die_number.clone();
+              Interval::new((1500 * index) as u32, move || {
+                die_number.set(throw);
+              })
+            })
+            .collect::<Vec<_>>();
 
-      || {
-        drop(interval);
-      }
-    });
+          return Box::new(|| {
+            for timeout in timeouts {
+              drop(timeout)
+            }
+          });
+        }
+
+        Box::new(|| {})
+      },
+      throws,
+    );
   }
+
+  // {
+  //   let die_number = die_number.clone();
+  //   use_effect(move || {
+  //     let interval = Interval::new(10000, move || {
+  //       die_number.set(*die_number + 1);
+  //     });
+
+  //     || {
+  //       drop(interval);
+  //     }
+  //   });
+  // }
 
   html! {
     <div class="flex flex-col gap-4">
