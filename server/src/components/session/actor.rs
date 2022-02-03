@@ -75,8 +75,6 @@ impl Actor for GameSession {
         fut::ready(())
       })
       .wait(ctx);
-
-    ctx.text("connected");
   }
 
   fn stopping(&mut self, _: &mut Self::Context) -> Running {

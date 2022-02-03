@@ -37,8 +37,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
           game.set(new_game)
         },
         ServerMessage::Error(msg) => log!(msg),
-        message => {
-          log!("message fell through", serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()));
+        _ => {
         },
       }
     })
@@ -76,7 +75,8 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
             if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
               handle_message.emit(message.clone());
               callback.emit(message.clone());
-              log!(format!("1. {:?}", message.clone()))
+              log!(format!("1. {:?}", message.clone()));
+              log!("parsing ok");
             } else {
               log!("parsing failed");
             }

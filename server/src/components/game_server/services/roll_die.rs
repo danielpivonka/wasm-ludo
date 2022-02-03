@@ -54,7 +54,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
   );
   let rolls_sum: usize = game.dice_throws.iter().sum();
 
-  if rolls_sum == 18 {
+  if rolls_sum == 18 || (rolls_sum < 6 && game.get_current_player().pawns_at_start + game.get_current_player().pawns_at_finish ==4) {
     game.update_current_player();
     game.dice_throws.clear();
     let game_state = database::update_game_state(&state.db, &msg.room_id, &game)

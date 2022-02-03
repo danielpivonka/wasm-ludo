@@ -32,7 +32,7 @@ pub fn game(props: &GameProps) -> Html {
               log!("game started recieved from server in subscribe callback");
             },
             ServerMessage::Error(msg) => log!(msg),
-            message => log!(format!("unrecognized message : {}",serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()))),
+            _ => {},
           },
         ));
 
