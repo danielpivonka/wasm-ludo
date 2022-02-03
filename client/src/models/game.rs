@@ -1,5 +1,5 @@
 use crate::types::FieldType;
-use chrono::{DateTime, Utc, FixedOffset};
+use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::models::color::Color;
@@ -17,13 +17,12 @@ pub struct Game {
   pub dice_throws: Vec<usize>,
 }
 
-
 impl Game {
   pub fn new() -> Self {
     Game {
       started_at: DateTime::parse_from_rfc2822("Tue, 1 Jul 2003 10:52:37 +0200").unwrap(),
       finished_at: None,
-      fields: vec![Some(Color::Yellow); 52],
+      fields: vec![None; 52],
       players: vec![],
       current_player: Color::Green,
       dice_throws: vec![],

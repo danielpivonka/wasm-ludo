@@ -14,13 +14,15 @@ pub struct PlayerCornerProps {
 
 #[function_component(PlayerCorner)]
 pub fn player_corner(props: &PlayerCornerProps) -> Html {
-  let PlayerCornerProps {
-    color,
-    on_promote,
-  } = props.clone();
-  let GameContext {game, ..} = use_context::<GameContext>().expect("context not found");
+  let PlayerCornerProps { color, on_promote } = props.clone();
+  let GameContext { game, .. } = use_context::<GameContext>().expect("context not found");
 
-  let pawn_count = game.players.iter().find(|player| player.color == color).and_then(|player| Some(player.pawns_at_start)).unwrap_or(0);
+  let pawn_count = game
+    .players
+    .iter()
+    .find(|player| player.color == color)
+    .and_then(|player| Some(player.pawns_at_start))
+    .unwrap_or(0);
   let pawn_count = clamp(pawn_count, 0, 4);
 
   let color_class = resolve_bg_color_class(&color);

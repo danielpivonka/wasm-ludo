@@ -1,13 +1,14 @@
 use futures::SinkExt;
+use gloo::console::log;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
+use crate::components::icon::Icon;
+use crate::components::pawn::Pawn;
 use crate::context::game_context::model::GameContext;
 use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
 use crate::utils::{resolve_bg_color_class, resolve_text_color_class};
-use crate::components::pawn::Pawn;
-use crate::components::icon::Icon;
 
 #[derive(PartialEq, Clone)]
 pub enum FieldVariant {
@@ -36,7 +37,7 @@ pub fn field(props: &FieldProps) -> Html {
     variant,
     arrow_class,
   } = props.clone();
-  let GameContext {game, sender, ..} = use_context::<GameContext>().expect("context not found");
+  let GameContext { game, sender, .. } = use_context::<GameContext>().expect("context not found");
 
   let bg_class = if color_background {
     resolve_bg_color_class(&color)
@@ -48,7 +49,11 @@ pub fn field(props: &FieldProps) -> Html {
 
   let pawn_color = if variant == FieldVariant::Home {
     // TODO: add home pawns
-    game.players.iter().find(|player| player.color == color).and_then(|player| player.home.get(raw_position).unwrap_or(&None).clone())
+    game
+      .players
+      .iter()
+      .find(|player| player.color == color)
+      .and_then(|player| player.home.get(position).unwrap_or(&None).clone())
   } else {
     game.fields.get(position).unwrap_or(&None).clone()
   };
@@ -64,7 +69,11 @@ pub fn field(props: &FieldProps) -> Html {
       let sender = sender.clone();
       spawn_local(async move {
         if let Some(mut sender) = sender.clone() {
-          sender.0.send(ClientMessage::MoveFigure(position, click_color)).await.ok();
+          sender
+            .0
+            .send(ClientMessage::MoveFigure(position, click_color))
+            .await
+            .ok();
         }
       });
     })

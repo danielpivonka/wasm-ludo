@@ -15,7 +15,7 @@ pub struct BoardProps {
 pub fn board(props: &BoardProps) -> Html {
   let BoardProps { on_promote } = props.clone();
   let fields = vec![None; 18];
-  let GameContext { game, ..} = use_context::<GameContext>().expect("context not found");
+  let GameContext { game, .. } = use_context::<GameContext>().expect("context not found");
 
   html! {
     <div class="mx-auto max-w-3xl grid grid-cols-board grid-rows-board aspect-square rounded border-8 shadow-lg border-neutral-200">

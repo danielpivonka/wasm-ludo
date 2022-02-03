@@ -1,5 +1,5 @@
+use gloo::timers::callback::{Interval, Timeout};
 use yew::prelude::*;
-use gloo::timers::callback::{Timeout, Interval};
 
 use crate::components::button::Button;
 use crate::components::card::Card;
@@ -32,7 +32,11 @@ pub fn player(props: &PlayerProps) -> Html {
     on_roll,
     color,
   } = props.clone();
-  let GameContext {current_player, game, ..} = use_context::<GameContext>().expect("context not found");
+  let GameContext {
+    current_player,
+    game,
+    ..
+  } = use_context::<GameContext>().expect("context not found");
   let die_number = use_state::<usize, _>(|| 1);
   let throws = game.dice_throws;
 
@@ -47,24 +51,32 @@ pub fn player(props: &PlayerProps) -> Html {
   {
     let die_number = die_number.clone();
     let throws = throws.clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(move |throws| {
-      if current_player == color {
-        let timeouts = throws.clone().into_iter().enumerate().map(|(index, throw)| {
-          let die_number = die_number.clone();
-          Interval::new((1500 * index) as u32, move || {
-            die_number.set(throw);
-          })
-        }).collect::<Vec<_>>();
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
+      move |throws| {
+        if current_player == color {
+          let timeouts = throws
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(index, throw)| {
+              let die_number = die_number.clone();
+              Interval::new((1500 * index) as u32, move || {
+                die_number.set(throw);
+              })
+            })
+            .collect::<Vec<_>>();
 
-        return Box::new(|| {
-          for timeout in timeouts {
-            drop(timeout)
-          }
-         })
-      }
+          return Box::new(|| {
+            for timeout in timeouts {
+              drop(timeout)
+            }
+          });
+        }
 
-      Box::new(|| {})
-    }, throws);
+        Box::new(|| {})
+      },
+      throws,
+    );
   }
 
   // {

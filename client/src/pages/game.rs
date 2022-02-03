@@ -52,7 +52,7 @@ pub fn game(props: &GameProps) -> Html {
   };
 
   let promote = { Callback::from(|color: Color| log!(color.to_string())) };
-  
+
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
