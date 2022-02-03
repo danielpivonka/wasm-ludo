@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::{color::Color, game::Game};
+use crate::models::{color::Color, game::Game, position::Position};
 
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ClientMessage {
@@ -43,5 +43,5 @@ pub enum MoveResult {
 }
 pub enum MoveType {
   Promote,
-  Move(Position)
+  Move(Position),
 }

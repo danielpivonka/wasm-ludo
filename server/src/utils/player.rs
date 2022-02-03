@@ -2,9 +2,14 @@ use crate::models::game::Game;
 use crate::models::player::Player;
 use crate::utils::enums::MoveResult;
 
-pub fn make_a_move_player(game: &mut Game, move: MoveType) -> MoveResult {
+use super::enums::MoveType;
+
+pub fn make_a_move(game: &mut Game, player_move: MoveType) -> MoveResult {
   let dice_value = game.dice_throws.iter().sum::<usize>();
-  game.execute_move(position, dice_value, is_home)
+  match player_move {
+    MoveType::Promote => game.promote_piece(dice_value),
+    MoveType::Move(position) => game.execute_move(position.position, dice_value, position.is_home),
+  }
 }
 
 pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, Vec<usize>, bool) {
