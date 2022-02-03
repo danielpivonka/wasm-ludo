@@ -8,6 +8,7 @@ use yew::prelude::*;
 use gloo::console::log;
 use gloo::storage::{SessionStorage, Storage};
 
+use crate::models::game::Game;
 use crate::models::messages::{ClientMessage, ServerMessage};
 
 use super::model::{GameContext, MsgSender};
@@ -21,6 +22,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let sender = use_state(|| None);
   let game_id = props.game_id.clone();
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
+  let game = use_state::<Option<Game>, _>(|| None);
 
   {
     let sender = sender.clone();
@@ -78,7 +80,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   };
 
   GameContext {
-    game: None,
+    game: (*game).clone(),
     player_count: 0,
     subscribe,
     sender: (*sender).clone(),
