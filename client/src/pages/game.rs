@@ -5,7 +5,7 @@ use yew::prelude::*;
 
 use crate::components::board::Board;
 use crate::components::player::{Player, PlayerButtonPosition};
-use crate::context::game_context::model::GameContext;
+use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 use crate::models::messages::{ClientMessage, ServerMessage};
 
@@ -42,41 +42,17 @@ pub fn game(props: &GameProps) -> Html {
     );
   }
 
-  let roll = {
-    let sender = sender.clone();
-    Callback::from(move |_| {
-      let sender = sender.clone();
-      spawn_local(async move {
-        if let Some(mut sender) = sender {
-          sender.0.send(ClientMessage::ThrowDice).await.ok();
-        };
-      });
-    })
-  };
-
-  let promote = {
-    let sender = sender.clone();
-    Callback::from(move |_color:Color| {
-      let sender = sender.clone();
-      spawn_local(async move {
-        if let Some(mut sender) = sender {
-          sender.0.send(ClientMessage::PromotePiece).await.ok();
-        };
-      });
-    })
-  };
-
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
         <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
-        <Player name={"John"} position={PlayerButtonPosition::Top} on_roll={roll} color={Color::Blue} />
+        <Player name={"John"} position={PlayerButtonPosition::Top} color={Color::Green} />
       </div>
       <div class="flex-grow">
-        <Board on_promote={promote}/>
+        <Board />
       </div>
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Green} />
+        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Blue} />
         <Player name={"John"} position={PlayerButtonPosition::Top} color={Color::Red} />
       </div>
     </div>

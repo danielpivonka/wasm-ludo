@@ -5,7 +5,7 @@ use yew::prelude::*;
 
 use crate::components::icon::Icon;
 use crate::components::pawn::Pawn;
-use crate::context::game_context::model::GameContext;
+use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
 use crate::utils::{resolve_bg_color_class, resolve_text_color_class};

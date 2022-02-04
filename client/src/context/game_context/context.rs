@@ -4,7 +4,7 @@ use crate::models::{
   color::Color,
   game::Game,
   messages::{ClientMessage, ServerMessage},
-  player::Player,
+  player::Player, die_info::DieInfo,
 };
 use futures::channel::mpsc::Sender;
 use yew::Callback;
@@ -17,6 +17,7 @@ pub struct GameContext {
   pub sender: Option<MsgSender>,
   pub players: HashMap<Color, Player>,
   pub current_player: Color,
+  pub dice_info: HashMap<Color, DieInfo>,
 }
 
 #[derive(Clone, Debug)]

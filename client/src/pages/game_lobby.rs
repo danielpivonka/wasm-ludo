@@ -12,7 +12,7 @@ use crate::components::content::Content;
 use crate::components::copy_bar::CopyBar;
 use crate::components::icon::Icon;
 use crate::components::outlined_item::OutlinedItem;
-use crate::context::game_context::model::GameContext;
+use crate::context::game_context::context::GameContext;
 use crate::models::messages::{ClientMessage, ServerMessage};
 use crate::routes::{GameRoute, MainRoute};
 
