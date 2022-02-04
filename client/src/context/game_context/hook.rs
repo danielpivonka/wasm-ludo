@@ -94,7 +94,8 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
             if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
               handle_message.emit(message.clone());
               callback.emit(message.clone());
-              log!(format!("1. {:?}", message.clone()))
+              log!(format!("1. {:?}", message.clone()));
+              log!("parsing ok");
             } else {
               log!("parsing failed");
             }

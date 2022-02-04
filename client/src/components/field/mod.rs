@@ -55,7 +55,7 @@ pub fn field(props: &FieldProps) -> Html {
       .find(|player| player.color == color)
       .and_then(|player| player.home.get(position).unwrap_or(&None).clone())
   } else {
-    game.fields.get(position).unwrap_or(&None).clone()
+    game.fields.get(position).clone()
   };
 
   let click_color = match variant {

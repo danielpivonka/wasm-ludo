@@ -1,6 +1,7 @@
 use super::super::actor::GameServerState;
 use crate::components::game_server::services::move_bot::move_bot;
 use crate::utils::bot::make_a_move_bot;
+use crate::utils::enums::RoundPhase;
 use crate::{
   components::{
     game::database,
@@ -26,6 +27,12 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
       return;
     }
   };
+  if game.round_phase != RoundPhase::Moving {
+    let message =
+        serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
+    send_message(message.as_str(), state.sessions, &msg.player_id);
+    return;
+  }
   let current_player_id = game
     .players
     .iter()
@@ -57,10 +64,15 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
       // handle if next player is a bot
       move_bot(state.clone(), &msg, &mut game_state).await;
     }
-    _ => {
+    MoveResult::Error(e) => {
       let message =
-        serde_json::to_string(&ServerMessage::Error("Error executing move".into())).unwrap();
+        serde_json::to_string(&ServerMessage::Error(format!("Error executing move: {}",e))).unwrap();
       send_message(message.as_str(), state.sessions, &msg.player_id);
     }
+    _ => {
+      let message = serde_json::to_string(&ServerMessage::Error("Unknown error".into())).unwrap();
+      send_message(message.as_str(), state.sessions, &msg.player_id);
+    }
+
   }
 }
