@@ -196,7 +196,8 @@ fn make_doc(game: &Game) -> anyhow::Result<Document> {
   let players = bson::to_bson(&game.players)?;
   let current_player = bson::to_bson(&game.current_player)?;
   let bson_dice_throws = bson::to_bson(&game.dice_throws)?;
-  let doc = doc! { "$set": { "fields": fields, "players": players, "current_player": current_player, "dice_throws": &bson_dice_throws } };
+  let phase = bson::to_bson(&game.round_phase)?;
+  let doc = doc! { "$set": { "fields": fields, "players": players, "current_player": current_player, "dice_throws": &bson_dice_throws, "round_phase":phase } };
   Ok(doc)
 }
 // pub fn make_bson<T>(values: &[&T]) -> anyhow::Result<Box<[Bson]>>

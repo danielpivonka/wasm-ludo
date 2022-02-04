@@ -1,4 +1,4 @@
-use super::super::actor::GameServerState;
+use super::{super::actor::GameServerState, move_bot::move_bot};
 use crate::{
   components::{
     game::database,
@@ -63,7 +63,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
   if rolls_sum == 18 || (rolls_sum < 6 && game.get_current_player().pawns_at_start + game.get_current_player().pawns_at_finish ==4) {
     game.update_current_player();
     game.dice_throws.clear();
-    let game_state = database::update_game_state(&state.db, &msg.room_id, &game)
+    let mut game_state = database::update_game_state(&state.db, &msg.room_id, &game)
       .await
       .unwrap(); //TODO handle errors
 
@@ -75,13 +75,14 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
       &msg.room_id,
     );
 
-    let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
+    let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state.clone())).unwrap();
     send_message_to_room(
       update_message.as_str(),
       state.sessions.clone(),
       state.rooms.clone(),
       &msg.room_id,
     );
+    move_bot(state.clone(), &msg, &mut game_state).await;
   } else if !can_roll_again {
     println!("Sum: {}", rolls_sum);
     let possible_moves = get_available_positions(&game, rolls_sum);
@@ -92,18 +93,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
     ))
     .unwrap();//TODO handle no available moves
     game.round_phase = RoundPhase::Moving;
-    let updated =database::update_game_state(&state.db, &msg.room_id, &game).await;
-    let updated_2 = match updated {
-      Ok(game) => game,
-      _ => {
-        let message =
-          serde_json::to_string(&ServerMessage::Error("Cannot find game".into())).unwrap();
-        send_message(message.as_str(), state.sessions, &msg.player_id);
-        return;
-      }
-    };
-    println!("Roll at start promote: {:?}", updated_2.dice_throws.iter());
-
+    let _ =database::update_game_state(&state.db, &msg.room_id, &game).await;
     send_message_to_room(
       roll_results_message.as_str(),
       state.sessions.clone(),

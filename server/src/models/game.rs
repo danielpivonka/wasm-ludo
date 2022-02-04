@@ -404,6 +404,7 @@ impl Game {
         let player = self.get_player_mut(self.current_player);
         player.decrease_pieces_at_start();
         self.fields.set(position,Some(self.current_player));
+        println!("promoted");
         MoveResult::Success(String::from("Your piece has been promoted!"))
       }
     }

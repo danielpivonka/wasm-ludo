@@ -57,7 +57,6 @@ pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
 // called upon receiving either PromotePiece or MovePiece(position, Option<Color>)
 // TODO: use struct Position { position: usize, is_home: bool }
 pub async fn play_round(game: &mut Game, move_type: MoveType) -> MoveResult {
-  let player = game.get_current_player();
 
   let mut move_result = make_a_move(game, move_type);
   
