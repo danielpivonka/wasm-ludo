@@ -1,5 +1,6 @@
 use crate::components::game_server::services::move_bot::move_bot;
 use crate::utils::bot::make_a_move_bot;
+use crate::utils::enums::RoundPhase;
 use crate::{
   components::{
     game::database,
@@ -26,6 +27,12 @@ pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, positio
       return;
     }
   };
+  if game.round_phase != RoundPhase::Moving {
+    let message =
+        serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
+    send_message(message.as_str(), state.sessions, &msg.player_id);
+    return;
+  }
   let current_player_id = game
     .players
     .iter()

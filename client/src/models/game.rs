@@ -9,10 +9,11 @@ use super::player::Player;
 pub struct Game {
   pub started: bool,
   pub winner: Option<Color>,
-  pub fields: Vec<FieldType>,
+  pub fields: Fields,
   pub players: Vec<Player>,
   pub current_player: Color,
   pub dice_throws: Vec<usize>,
+  pub round_phase: RoundPhase
 }
 
 impl Game {
@@ -20,10 +21,30 @@ impl Game {
     Game {
       started: false,
       winner: None,
-      fields: vec![None; 52],
+      fields: Fields::new(),
       players: vec![],
       current_player: Color::Green,
+      round_phase: RoundPhase::Rolling,
       dice_throws: vec![],
     }
   }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct Fields{
+  values: Vec<FieldType>
+}
+impl Fields{
+  pub fn new()-> Fields{ 
+    Fields{values: vec![None; 52]}
+  }
+  pub fn get(&self,i: usize)-> FieldType
+  {
+    self.values.get(i%52).unwrap().clone()
+  }
+}
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum RoundPhase{
+  Rolling,
+  Moving
 }

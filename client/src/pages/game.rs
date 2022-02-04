@@ -32,7 +32,7 @@ pub fn game(props: &GameProps) -> Html {
               log!("game started recieved from server in subscribe callback");
             },
             ServerMessage::Error(msg) => log!(msg),
-            message => log!(format!("unrecognized message : {}",serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()))),
+            _ => {},
           },
         ));
 
@@ -43,18 +43,28 @@ pub fn game(props: &GameProps) -> Html {
   }
 
   let roll = {
+    let sender = sender.clone();
     Callback::from(move |_| {
       let sender = sender.clone();
-      log!("we rollin' boys");
       spawn_local(async move {
-        if let Some(mut sender) = sender.clone() {
+        if let Some(mut sender) = sender {
           sender.0.send(ClientMessage::ThrowDice).await.ok();
         };
       });
     })
   };
 
-  let promote = { Callback::from(|color: Color| log!(color.to_string())) };
+  let promote = {
+    let sender = sender.clone();
+    Callback::from(move |_color:Color| {
+      let sender = sender.clone();
+      spawn_local(async move {
+        if let Some(mut sender) = sender {
+          sender.0.send(ClientMessage::PromotePiece).await.ok();
+        };
+      });
+    })
+  };
 
   html! {
     <div class="py-4 flex">

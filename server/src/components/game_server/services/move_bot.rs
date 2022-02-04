@@ -5,9 +5,11 @@ use crate::models::actor_messages::ClientActorMessage;
 use crate::models::game::Game;
 use crate::utils::bot::make_a_move_bot;
 use crate::utils::enums::{MoveResult, ServerMessage};
+use tokio::time::{sleep, Duration};
 
 pub async fn move_bot(state: GameServerState, msg: &ClientActorMessage, game_state: &mut Game) {
   while game_state.is_current_player_ai() {
+    sleep(Duration::from_millis(3000)).await;
     let result = make_a_move_bot(game_state);
     match result {
       MoveResult::Success(_) => {
