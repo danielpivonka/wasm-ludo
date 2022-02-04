@@ -3,7 +3,7 @@ use gloo::console::log;
 use gloo::timers::callback::{Interval, Timeout};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-
+use crate::utils::color_to_name::color_to_name;
 use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::die::Die;
@@ -20,16 +20,15 @@ pub enum PlayerButtonPosition {
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct PlayerProps {
-  pub name: String,
   #[prop_or(PlayerButtonPosition::Top)]
   pub position: PlayerButtonPosition,
   pub color: Color,
 }
 
 #[function_component(Player)]
+
 pub fn player(props: &PlayerProps) -> Html {
   let PlayerProps {
-    name,
     position,
     color,
   } = props.clone();
@@ -137,7 +136,7 @@ pub fn player(props: &PlayerProps) -> Html {
       }
       <Card>
         <div class="flex justify-between items-center p-4">
-          <span class="text-lg font-semibold text-neutral-700">{ name }</span>
+          <span class="text-lg font-semibold text-neutral-700">{ color_to_name(&game,color) }</span>
           <Die is_rolling={*is_rolling} number={die_info.number} />
         </div>
       // TODO: add timeline

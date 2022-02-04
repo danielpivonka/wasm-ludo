@@ -47,15 +47,15 @@ pub fn game(props: &GameProps) -> Html {
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={color_to_name(&game,Color::Yellow)} position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
-        <Player name={color_to_name(&game,Color::Green)} position={PlayerButtonPosition::Top} color={Color::Green} />
+        <Player position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
+        <Player position={PlayerButtonPosition::Top} color={Color::Green} />
       </div>
       <div class="flex-grow">
         <Board />
       </div>
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={color_to_name(&game,Color::Blue)} position={PlayerButtonPosition::Bottom} color={Color::Blue} />
-        <Player name={color_to_name(&game,Color::Red)} position={PlayerButtonPosition::Top} color={Color::Red} />
+        <Player position={PlayerButtonPosition::Bottom} color={Color::Blue} />
+        <Player position={PlayerButtonPosition::Top} color={Color::Red} />
       </div>
     </div>
   }
