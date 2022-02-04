@@ -2,7 +2,7 @@ use yew::prelude::*;
 
 use super::{
   hook::{use_game, UseGameProps},
-  model::GameContext,
+  context::GameContext,
 };
 
 #[derive(Properties, PartialEq, Clone)]
