@@ -1,4 +1,5 @@
 use crate::types::FieldType;
+use futures::stream::Collect;
 use serde::{Deserialize, Serialize};
 
 use crate::models::color::Color;
@@ -13,7 +14,7 @@ pub struct Game {
   pub players: Vec<Player>,
   pub current_player: Color,
   pub dice_throws: Vec<usize>,
-  pub round_phase: RoundPhase
+  pub round_phase: RoundPhase,
 }
 
 impl Game {
@@ -29,22 +30,22 @@ impl Game {
     }
   }
 }
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct Fields{
-  values: Vec<FieldType>
+pub struct Fields {
+  values: Vec<FieldType>,
 }
-impl Fields{
-  pub fn new()-> Fields{ 
-    Fields{values: vec![None; 52]}
+impl Fields {
+  pub fn new() -> Fields {
+    Fields {
+      values: vec![None; 52],
+    }
   }
-  pub fn get(&self,i: usize)-> FieldType
-  {
-    self.values.get(i%52).unwrap().clone()
+  pub fn get(&self, i: usize) -> FieldType {
+    self.values.get(i % 52).unwrap().clone()
   }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum RoundPhase{
+pub enum RoundPhase {
   Rolling,
-  Moving
+  Moving,
 }

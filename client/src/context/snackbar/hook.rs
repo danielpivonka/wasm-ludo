@@ -13,18 +13,18 @@ pub struct UseToastValues {
 
 pub fn use_snackbar() -> UseToastValues {
   let is_open = use_state(|| false);
-  let options = use_state(|| SnackbarOptions { 
-    message: "".into(), 
-    toast_type: ToastType::Success, 
+  let options = use_state(|| SnackbarOptions {
+    message: "".into(),
+    toast_type: ToastType::Success,
   });
-  
+
   let close = {
     let is_open = is_open.clone();
     Callback::from(move |_| {
       is_open.set(false);
     })
   };
-  
+
   let open = {
     let is_open = is_open.clone();
     let options = options.clone();
@@ -34,25 +34,25 @@ pub fn use_snackbar() -> UseToastValues {
     })
   };
 
-
   {
     let is_open = (*is_open).clone();
     let close = close.clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(move |is_open| {
-      if !is_open {
-        return Box::new(|| {})
-      }
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
+      move |is_open| {
+        if !is_open {
+          return Box::new(|| {});
+        }
 
-      let timeout = Timeout::new(5000, move || {
-        close.emit(());
-      });
-      
-      Box::new(|| {
-        drop(timeout)
-      })
-    }, is_open);
+        let timeout = Timeout::new(5000, move || {
+          close.emit(());
+        });
+
+        Box::new(|| drop(timeout))
+      },
+      is_open,
+    );
   }
-    
+
   UseToastValues {
     open,
     is_open: (*is_open).clone(),

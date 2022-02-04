@@ -1,4 +1,5 @@
 mod clamp;
+pub mod color_to_name;
 mod resolve_color;
 
 pub use clamp::clamp;

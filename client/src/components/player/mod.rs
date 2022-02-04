@@ -62,21 +62,22 @@ pub fn player(props: &PlayerProps) -> Html {
   {
     let is_rolling = is_rolling.clone();
     let is_rolling_value = (*is_rolling).clone();
-    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(|is_rolling_value| {
-      if !is_rolling_value {
-        return Box::new(|| {})
-      };
+    use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
+      |is_rolling_value| {
+        if !is_rolling_value {
+          return Box::new(|| {});
+        };
 
-      let timeout = Timeout::new(2000, move || {
-        is_rolling.set(false);
-      });
-      
-      Box::new(|| {
-        drop(timeout)
-      })
-    }, is_rolling_value);
+        let timeout = Timeout::new(2000, move || {
+          is_rolling.set(false);
+        });
+
+        Box::new(|| drop(timeout))
+      },
+      is_rolling_value,
+    );
   }
-    
+
   let button = if current_player == color {
     html! { <Button {icon} onclick={roll} disabled={!die_info.can_roll}>{"Roll the die"}</Button> }
   } else {
