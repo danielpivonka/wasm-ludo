@@ -1,30 +1,55 @@
+use std::slice::{SliceIndex, Iter};
+
 use serde::{Deserialize, Serialize};
 
 use crate::models::color::Color;
 use crate::types::Field;
-use crate::utils::enums::MoveResult;
+use crate::utils::enums::{MoveResult, RoundPhase};
 
 use super::player::Player;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Game {
   pub started: bool,
   pub winner: Option<Color>,
-  pub fields: Vec<Field>,
+  pub fields: Fields,
   pub players: Vec<Player>,
   pub current_player: Color,
   pub dice_throws: Vec<usize>,
+  pub round_phase: RoundPhase
 }
-
-const PROMOTE_PIECE: usize = 100;
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Fields{
+  values: Vec<Field>
+}
+impl Fields{
+  fn new()-> Fields{ 
+    Fields{values: vec![None; 52]}
+  }
+  fn get(&self,i: usize)-> Field
+  {
+    self.values.get(i%52).unwrap().clone()
+  }
+  fn set(&mut self,k: usize,v: Field)
+  {
+    self.values[k%52] = v;
+  }
+  fn len(&self)-> usize {
+    self.values.iter().len()
+  }
+  fn get_clone(&self) -> Vec<Field>{
+    self.values.clone()
+  }
+}
 
 impl Game {
   pub fn new() -> Self {
     Game {
       started: false,
       winner: None,
-      fields: vec![None; 52],
+      fields: Fields::new(),
       players: vec![],
       current_player: Color::ordered().first().unwrap().to_owned(),
+      round_phase: RoundPhase::Rolling,
       dice_throws: vec![],
     }
   }
@@ -54,7 +79,8 @@ impl Game {
       Color::Blue => Color::Red,
       Color::Red => Color::Green,
       Color::Green => Color::Yellow,
-    }
+    };
+    self.round_phase = RoundPhase::Rolling;
   }
 
   // how many steps we need to make to reach the first field of player's home
@@ -99,6 +125,7 @@ impl Game {
   pub fn get_players_pieces_positions(&self, color: &Color) -> Vec<usize> {
     self
       .fields
+      .get_clone()
       .iter()
       .enumerate()
       .filter(|&(_position, field)| self.is_occupied_by(field, color))
@@ -136,7 +163,8 @@ impl Game {
 
   // if we land on opponent at 'position', we remove his piece (we can't jump on our own piece)
   pub fn clear_field(&mut self, position: usize) {
-    if let Some(color) = self.fields[position] {
+    let position = position % 52;
+    if let Some(color) = self.fields.get(position) {
       self.remove_players_piece(color);
     }
   }
@@ -149,12 +177,16 @@ impl Game {
   // add check for player.pawns_at_start > 0 ?
   /// check if position where promoted piece would land is not occupied by our piece
   pub fn can_promote_piece(&self, dice_value: usize) -> bool {
+    println!("promote roll: {}", dice_value);
     dice_value >= 6 && self.is_available_field(self.get_starting_position() + dice_value - 6)
   }
 
   // we can jump to a field, if it's either empty or occupied by opponent,
   // i.e. it's not occupied by us
   pub fn is_available_field(&self, position: usize) -> bool {
+    println!("pre mod: {},", position);
+    let position = position % 52;
+    println!("post mod: {},", position);
     self.is_in_bounds(position) && !self.is_current_players_piece(position)
   }
 
@@ -209,9 +241,9 @@ impl Game {
   }
 
   pub fn jump(&mut self, old_position: usize, new_position: usize) {
-    self.fields[old_position] = None;
+    self.fields.set(old_position,None);
     self.clear_field(new_position);
-    self.fields[new_position] = Some(self.current_player)
+    self.fields.set(new_position,Some(self.current_player))
   }
 
   // we assume we jump from 'main fields' to player's home
@@ -219,7 +251,7 @@ impl Game {
   //    distinguish between old_position in self.fields and in home, so that we can clear
   //    the correct field
   pub fn jump_home(&mut self, old_position: usize, home_offset: usize) {
-    self.fields[old_position] = None;
+    self.fields.set(old_position,None);
     let color = self.current_player;
     let home = self.get_home_mut();
     home[home_offset] = Some(color);
@@ -271,7 +303,7 @@ impl Game {
 
   // jump from main field to finish
   pub fn jump_to_finish(&mut self, position: usize) {
-    self.fields[position] = None;
+    self.fields.set(position,None);
     let mut player = self.get_current_player_mut();
     player.pawns_at_finish += 1;
   }
@@ -371,7 +403,7 @@ impl Game {
         self.clear_field(position);
         let player = self.get_player_mut(self.current_player);
         player.decrease_pieces_at_start();
-        self.fields[position] = Some(self.current_player);
+        self.fields.set(position,Some(self.current_player));
         MoveResult::Success(String::from("Your piece has been promoted!"))
       }
     }
@@ -380,14 +412,14 @@ impl Game {
   // returns whether a field specified by <position> is is occupied by a piece with <color>
   pub fn is_players_piece(&self, position: usize, player_color: &Color) -> bool {
     match self.fields.get(position) {
-      Some(Some(color)) => color == player_color,
+      Some(color) => color == *player_color,
       _ => false,
     }
   }
 
   pub fn is_opponents_piece(&self, position: usize) -> bool {
     match self.fields.get(position) {
-      Some(Some(color)) => color != &self.current_player,
+      Some(color) => color != self.current_player,
       _ => false,
     }
   }
@@ -399,7 +431,7 @@ impl Game {
   // returns whether a field is empty
   pub fn is_field_empty(&self, position: usize) -> bool {
     match self.fields.get(position) {
-      Some(field) => field.is_none(),
+      Some(_) => true,
       None => false,
     }
   }
@@ -482,23 +514,23 @@ mod tests {
   }
 
   fn is_empty_field(fields: &Vec<Field>, position: usize) -> bool {
-    fields[position].is_none()
+    fields.get(position).is_none()
   }
 
   fn is_occupied_field_by(fields: &Vec<Field>, position: usize, color: Color) -> bool {
-    match fields[position] {
-      None => false,
-      Some(_color) => _color == color,
+    match fields.get(position) {
+      Some(Some(_color)) => *_color == color,
+      _ => false,
     }
   }
 
-  fn set_field(fields: &mut Vec<Field>, position: usize, field: Field) {
-    fields[position] = field
+  fn set_field(fields: &mut Fields, position: usize, field: Field) {
+    fields.set(position,field)
   }
 
   fn print_game(game: &Game) {
     println!();
-    for (i, field) in game.fields.iter().enumerate() {
+    for (i, field) in game.fields.get_clone().iter().enumerate() {
       println!("{}: {:?}", i, field);
     }
     println!();
@@ -525,11 +557,11 @@ mod tests {
 
     // the starting player is Yellow
     assert_eq!(game.current_player, Color::Yellow);
-    assert!(is_empty_fields(&game.fields));
+    assert!(is_empty_fields(&game.fields.get_clone()));
     assert_eq!(game.get_starting_position(), 8); // Yellow player starts at 8
 
     let dice_value = 9;
-    let position = PROMOTE_PIECE;
+    let position = 0;
     let home_column = false;
 
     match game.execute_move(position, dice_value, home_column) {
@@ -538,14 +570,14 @@ mod tests {
       MoveResult::Success(_) => assert!(true),
     }
 
-    assert!(is_empty_field(&game.fields, game.get_starting_position()));
+    assert!(is_empty_field(&game.fields.get_clone(), game.get_starting_position()));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       game.get_starting_position() + 3,
       Color::Yellow
     ));
-    assert!(is_occupied_field_by(&game.fields, 11, Color::Yellow));
-    assert!(!(is_empty_fields(&game.fields)));
+    assert!(is_occupied_field_by(&game.fields.get_clone(), 11, Color::Yellow));
+    assert!(!(is_empty_fields(&game.fields.get_clone())));
     assert_eq!(game.get_current_player().pawns_at_start, 3);
 
     game.update_current_player();
@@ -560,18 +592,18 @@ mod tests {
 
     assert_eq!(game.get_starting_position(), 8);
     set_field(&mut game.fields, 8 + 3, Some(Color::Yellow));
-    assert_eq!(empty_fields_count(&game.fields), game.field_size() - 1);
+    assert_eq!(empty_fields_count(&game.fields.get_clone()), game.field_size() - 1);
 
-    match game.execute_move(PROMOTE_PIECE, 6 + 3, false) {
+    match game.execute_move(0, 6 + 3, false) {
       MoveResult::Error(_) => assert!(true),
       MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(false),
     }
 
     assert_eq!(game.get_current_player().pawns_at_start, 4);
-    assert!(is_empty_field(&game.fields, 8));
-    assert!(is_occupied_field_by(&game.fields, 8 + 3, Color::Yellow));
-    assert_eq!(empty_fields_count(&game.fields), game.field_size() - 1);
+    assert!(is_empty_field(&game.fields.get_clone(), 8));
+    assert!(is_occupied_field_by(&game.fields.get_clone(), 8 + 3, Color::Yellow));
+    assert_eq!(empty_fields_count(&game.fields.get_clone()), game.field_size() - 1);
   }
 
   #[test]
@@ -584,7 +616,7 @@ mod tests {
     let starting_pos = game.get_starting_position();
     let field_size = game.fields.len();
 
-    game.fields[starting_pos + dice_value - 6] = Some(opponent_color);
+    game.fields.set(starting_pos + dice_value - 6,Some(opponent_color));
 
     // set_field(&mut game.fields, starting_pos + dice_value - 6, Some(opponent_color));
     let mut opponent = game.get_player_mut(opponent_color);
@@ -593,7 +625,7 @@ mod tests {
     print_game(&game);
 
     let mut game = game.clone();
-    match game.execute_move(PROMOTE_PIECE, dice_value, false) {
+    match game.execute_move(0, dice_value, false) {
       MoveResult::Error(_) => assert!(false),
       MoveResult::Winner(_) => assert!(false),
       MoveResult::Success(_) => assert!(true),
@@ -603,9 +635,9 @@ mod tests {
 
     assert_eq!(game.get_current_player().pawns_at_start, 3);
     assert_eq!(game.get_player(opponent_color).pawns_at_start, 4);
-    assert!(is_empty_field(&game.fields, 8));
-    assert!(is_occupied_field_by(&game.fields, 8 + 8, Color::Yellow));
-    assert_eq!(empty_fields_count(&game.fields), field_size - 1);
+    assert!(is_empty_field(&game.fields.get_clone(), 8));
+    assert!(is_occupied_field_by(&game.fields.get_clone(), 8 + 8, Color::Yellow));
+    assert_eq!(empty_fields_count(&game.fields.get_clone()), field_size - 1);
   }
 
   // #[test]
@@ -623,10 +655,10 @@ mod tests {
     let starting_pos = 20;
     let field_size = game.fields.len();
 
-    game.fields[starting_pos] = Some(game.current_player);
-    game.fields[starting_pos + dice_value] = Some(opponent_color);
-    game.fields[starting_pos + dice_value + 1] = Some(opponent_color);
-    game.fields[starting_pos + dice_value - 1] = Some(opponent_color);
+    game.fields.set(starting_pos,Some(game.current_player));
+    game.fields.set(starting_pos + dice_value,Some(opponent_color));
+    game.fields.set(starting_pos + dice_value + 1,Some(opponent_color));
+    game.fields.set(starting_pos + dice_value - 1,Some(opponent_color));
 
     let mut opponent = game.get_player_mut(opponent_color);
     opponent.pawns_at_start = 1;
@@ -647,19 +679,19 @@ mod tests {
 
     assert_eq!(game.get_current_player().pawns_at_start, 3);
     assert_eq!(game.get_player(opponent_color).pawns_at_start, 2);
-    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_empty_field(&game.fields.get_clone(), starting_pos));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos + dice_value,
       Color::Yellow
     ));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos + dice_value + 1,
       Color::Green
     ));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos + dice_value - 1,
       Color::Green
     ));
@@ -681,14 +713,14 @@ mod tests {
 
     assert_eq!(game.get_player(Color::Green).pawns_at_start, 2);
     // assert_eq!(game.get_player(Color::Yellow).pawns_at_start, 4);
-    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_empty_field(&game.fields.get_clone(), starting_pos));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos + dice_value,
       Color::Green
     ));
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos + dice_value + 1,
       Color::Green
     ));
@@ -701,7 +733,7 @@ mod tests {
 
     let dice_value = 1;
     let starting_pos = 6; // right in front of home
-    game.fields[starting_pos] = Some(game.current_player);
+    game.fields.set(starting_pos,Some(game.current_player));
 
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
@@ -711,7 +743,7 @@ mod tests {
     }
 
     let player = game.get_current_player();
-    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_empty_field(&game.fields.get_clone(), starting_pos));
     assert!(is_occupied_field_by(&player.home, 0, Color::Yellow));
   }
 
@@ -722,7 +754,7 @@ mod tests {
 
     let dice_value = 9;
     let starting_pos = 6; // right in front of home
-    game.fields[starting_pos] = Some(game.current_player);
+    game.fields.set(starting_pos,Some(game.current_player));
 
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
@@ -733,7 +765,7 @@ mod tests {
 
     let player = game.get_current_player();
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos,
       Color::Yellow
     ));
@@ -747,7 +779,7 @@ mod tests {
 
     let dice_value = 1;
     let starting_pos = 6; // right in front of home
-    game.fields[starting_pos] = Some(game.current_player);
+    game.fields.set(starting_pos,Some(game.current_player));
     let mut player = game.get_current_player_mut();
     player.home[0] = Some(Color::Yellow);
 
@@ -760,7 +792,7 @@ mod tests {
 
     let player = game.get_current_player();
     assert!(is_occupied_field_by(
-      &game.fields,
+      &game.fields.get_clone(),
       starting_pos,
       Color::Yellow
     ));
@@ -780,7 +812,7 @@ mod tests {
 
     let dice_value = 6;
     let starting_pos = 6; // right in front of home
-    game.fields[starting_pos] = Some(game.current_player);
+    game.fields.set(starting_pos,Some(game.current_player));
 
     let mut game = game.clone();
     match game.execute_move(starting_pos, dice_value, false) {
@@ -790,7 +822,7 @@ mod tests {
     }
 
     let player = game.get_current_player();
-    assert!(is_empty_field(&game.fields, starting_pos));
+    assert!(is_empty_field(&game.fields.get_clone(), starting_pos));
     assert_eq!(player.pawns_at_finish, 1);
   }
 
@@ -855,9 +887,9 @@ mod tests {
     game.current_player = Color::Yellow;
 
     // Yellow starts at position 8, the field in front of home is at position 6
-    game.fields[9] = Some(Color::Yellow);
-    game.fields[12] = Some(Color::Yellow);
-    game.fields[6] = Some(Color::Yellow);
+    game.fields.set(9,Some(Color::Yellow));
+    game.fields.set(12,Some(Color::Yellow));
+    game.fields.set(6,Some(Color::Yellow));
 
     let mut yellow_player = game.get_player_mut(Color::Yellow);
     yellow_player.home[2] = Some(Color::Yellow);
@@ -918,7 +950,7 @@ mod tests {
     game.current_player = Color::Yellow;
 
     // Yellow starts at position 8
-    game.fields[9] = Some(Color::Yellow);
+    game.fields.set(9,Some(Color::Yellow));
 
     let mut yellow_player = game.get_player_mut(Color::Yellow);
     yellow_player.pawns_at_start = 3;
@@ -949,7 +981,7 @@ mod tests {
     assert_eq!(actual_can_promote, expected_can_promote);
 
     // // if there is an opponent piece, we don't get blocked (promotion)
-    game.fields[9] = Some(Color::Green);
+    game.fields.set(9,Some(Color::Green));
     let dice_value = 7;
     let (actual_board_pos, actual_home_pos, actual_can_promote) =
       get_available_positions(&game, dice_value);
@@ -963,8 +995,8 @@ mod tests {
     assert_eq!(actual_can_promote, expected_can_promote);
 
     // if there is an opponent piece, we don't get blocked (on board)
-    game.fields[9] = Some(Color::Yellow);
-    game.fields[12] = Some(Color::Green);
+    game.fields.set(9,Some(Color::Yellow));
+    game.fields.set(12,Some(Color::Green));
     let dice_value = 3;
     let (actual_board_pos, actual_home_pos, actual_can_promote) =
       get_available_positions(&game, dice_value);

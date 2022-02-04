@@ -26,6 +26,7 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
       return;
     }
   };
+  println!("Roll at start promote: {:?}", game.dice_throws.iter());
   let current_player_id = game
     .players
     .iter()
@@ -57,10 +58,15 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
       // handle if next player is a bot
       move_bot(state.clone(), &msg, &mut game_state).await;
     }
-    _ => {
+    MoveResult::Error(e) => {
       let message =
-        serde_json::to_string(&ServerMessage::Error("Error executing move".into())).unwrap();
+        serde_json::to_string(&ServerMessage::Error(format!("Error executing move: {}",e))).unwrap();
       send_message(message.as_str(), state.sessions, &msg.player_id);
     }
+    _ => {
+      let message = serde_json::to_string(&ServerMessage::Error("Unknown error".into())).unwrap();
+      send_message(message.as_str(), state.sessions, &msg.player_id);
+    }
+
   }
 }

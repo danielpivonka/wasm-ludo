@@ -5,7 +5,7 @@ use crate::{
     game_server::utils::{send_message, send_message_to_room},
   },
   models::actor_messages::ClientActorMessage,
-  utils::{dice::get_dice_value, enums::ServerMessage, player::get_available_positions},
+  utils::{dice::get_dice_value, enums::{ServerMessage, RoundPhase}, player::get_available_positions},
 };
 
 pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
@@ -20,6 +20,12 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
       return;
     }
   };
+  if game.round_phase != RoundPhase::Rolling {
+    let message =
+        serde_json::to_string(&ServerMessage::Error("Rolling is not allowed now".into())).unwrap();
+    send_message(message.as_str(), state.sessions, &msg.player_id);
+    return;
+  }
   let current_player_id = game
     .players
     .iter()
@@ -52,7 +58,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
     state.rooms.clone(),
     &msg.room_id,
   );
-  let rolls_sum: usize = game.dice_throws.iter().sum();
+  let rolls_sum: usize = game.dice_throws.clone().iter().sum();
 
   if rolls_sum == 18 || (rolls_sum < 6 && game.get_current_player().pawns_at_start + game.get_current_player().pawns_at_finish ==4) {
     game.update_current_player();
@@ -77,13 +83,27 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
       &msg.room_id,
     );
   } else if !can_roll_again {
+    println!("Sum: {}", rolls_sum);
     let possible_moves = get_available_positions(&game, rolls_sum);
     let roll_results_message = serde_json::to_string(&ServerMessage::AvailablePositions(
       possible_moves.0,
       possible_moves.1,
       possible_moves.2,
     ))
-    .unwrap();
+    .unwrap();//TODO handle no available moves
+    game.round_phase = RoundPhase::Moving;
+    let updated =database::update_game_state(&state.db, &msg.room_id, &game).await;
+    let updated_2 = match updated {
+      Ok(game) => game,
+      _ => {
+        let message =
+          serde_json::to_string(&ServerMessage::Error("Cannot find game".into())).unwrap();
+        send_message(message.as_str(), state.sessions, &msg.player_id);
+        return;
+      }
+    };
+    println!("Roll at start promote: {:?}", updated_2.dice_throws.iter());
+
     send_message_to_room(
       roll_results_message.as_str(),
       state.sessions.clone(),

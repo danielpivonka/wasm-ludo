@@ -37,3 +37,9 @@ pub enum MoveType {
   Promote,
   Move(Position),
 }
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize,Clone, Copy)]
+
+pub enum RoundPhase{
+  Rolling,
+  Moving
+}
