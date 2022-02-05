@@ -197,7 +197,9 @@ impl Game {
   /// check if position where promoted piece would land is not occupied by our piece
   pub fn can_promote_piece(&self, dice_value: usize) -> bool {
     println!("promote roll: {}", dice_value);
-    dice_value > 6 && self.is_available_field(self.get_starting_position() + dice_value - 6)
+    dice_value > 6
+      && self.is_available_field(self.get_starting_position() + dice_value - 6)
+      && self.get_current_player().pawns_at_start > 0
   }
 
   // we can jump to a field, if it's either empty or occupied by opponent,

@@ -4,8 +4,8 @@ use yew::prelude::*;
 pub struct CardProps {
   #[prop_or_default]
   pub children: Children,
-  #[prop_or(String::from(""))]
-  pub class: String,
+  #[prop_or_default]
+  pub class: Classes,
 }
 
 #[function_component(Card)]
@@ -13,7 +13,7 @@ pub fn card(props: &CardProps) -> Html {
   let CardProps { children, class } = props;
 
   html! {
-    <div class={classes!(String::from("shadow-md bg-white border border-neutral-300 rounded"), class)}>
+    <div class={classes!(String::from("shadow-md bg-white box-border border border-neutral-300 rounded"), class.clone())}>
       { for children.iter() }
     </div>
   }

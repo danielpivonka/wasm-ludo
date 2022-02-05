@@ -36,7 +36,12 @@ pub fn field(props: &FieldProps) -> Html {
     variant,
     arrow_class,
   } = props.clone();
-  let GameContext { game, sender, .. } = use_context::<GameContext>().expect("context not found");
+  let GameContext {
+    game,
+    sender,
+    player_color,
+    ..
+  } = use_context::<GameContext>().expect("context not found");
 
   let bg_class = if color_background {
     resolve_bg_color_class(&color)
@@ -80,7 +85,7 @@ pub fn field(props: &FieldProps) -> Html {
 
   let content = {
     if let Some(color) = pawn_color {
-      html! { <Pawn {color} {onclick} /> }
+      html! { <Pawn color={color.clone()} onclick={(color == player_color).then(|| onclick)} /> }
     } else if raw_position == 6 {
       html! { <Icon class={classes!(arrow_class)} /> }
     } else {

@@ -1,11 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
-
-use gloo::console::log;
 use yew::Reducible;
 
-use crate::models::{
-  color::Color, die_info::DieInfo, game::Game, messages::ServerMessage, player::Player,
-};
+use crate::models::{color::Color, die_info::DieInfo, game::Game, messages::ServerMessage};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct GameState {
@@ -71,15 +67,25 @@ impl Reducible for GameState {
         .into()
       }
       ServerMessage::ConnectResponse(game, player_color) => {
-        log!("setting game in connnect response");
+        let current_player = game.current_player.clone();
+        let dice_info = self.dice_info.iter().map(|(color, die_info)| {
+          let can_roll = current_player == *color;
+          let die_info = DieInfo {
+            can_roll,
+            ..die_info.clone()
+          };
+          (color.clone(), die_info)
+        });
+
         Self {
           game,
           player_color,
+          dice_info: dice_info.collect(),
           ..(*self).clone()
         }
         .into()
       }
-      _ => self.into(),
+      _ => self,
     }
   }
 }

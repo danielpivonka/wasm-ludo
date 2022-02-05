@@ -7,8 +7,8 @@ use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
 use crate::utils::color_to_name::color_to_name;
 use futures::SinkExt;
-use gloo::console::log;
 use gloo::timers::callback::Timeout;
+use stylist::css;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -125,6 +125,8 @@ pub fn player(props: &PlayerProps) -> Html {
   //   });
   // }
 
+  let border_anim = css!("transition: border 350ms ease-out;");
+
   html! {
     <div class="flex flex-col gap-4">
       {
@@ -132,8 +134,8 @@ pub fn player(props: &PlayerProps) -> Html {
           button.clone()
         } else { html! {} }
       }
-      <Card>
-        <div class="flex justify-between items-center p-4">
+      <Card class={classes!("border-2", border_anim, (game.current_player == color).then(|| "border-primary-400"))}>
+        <div class={classes!(String::from("flex justify-between items-center p-4"))}>
           <span class="text-lg font-semibold text-neutral-700">{ color_to_name(&game,color) }</span>
           <Die is_rolling={*is_rolling} number={die_info.number} />
         </div>

@@ -8,7 +8,7 @@ impl DieInfo {
   pub fn new() -> Self {
     DieInfo {
       number: 1,
-      can_roll: true,
+      can_roll: false,
     }
   }
 }

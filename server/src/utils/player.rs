@@ -39,6 +39,11 @@ pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, V
 
   let piece_positions_in_home_row: Vec<usize> =
     game.get_players_pieces_positions_in_home(player.color);
+
+  let piece_positions_in_home_row = piece_positions_in_home_row
+    .into_iter()
+    .filter(|&position| game.can_jump_from_home(position, dice_value))
+    .collect();
   // player
   // .home
   // .clone()

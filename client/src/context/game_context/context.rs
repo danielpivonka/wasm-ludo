@@ -5,7 +5,6 @@ use crate::models::{
   die_info::DieInfo,
   game::Game,
   messages::{ClientMessage, ServerMessage},
-  player::Player,
 };
 use futures::channel::mpsc::Sender;
 use yew::Callback;
