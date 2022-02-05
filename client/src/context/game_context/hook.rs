@@ -13,9 +13,9 @@ use gloo::storage::{SessionStorage, Storage};
 
 use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, ToastType};
 use crate::models::color::Color;
+use crate::models::die_info::DieInfo;
 use crate::models::game::Game;
 use crate::models::messages::{ClientMessage, ServerMessage};
-use crate::models::die_info::DieInfo;
 
 use super::context::{GameContext, MsgSender};
 
@@ -30,34 +30,43 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let game_id = props.game_id.clone();
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
   let game = use_state::<Game, _>(|| Game::new());
-  let dice_info = use_state::<HashMap<Color, DieInfo>, _>(|| [
-    (Color::Yellow, DieInfo::new()),
-    (Color::Green, DieInfo::new()),
-    (Color::Blue, DieInfo::new()),
-    (Color::Red, DieInfo::new()),
-  ].iter().cloned().collect::<HashMap<_, _>>());
+  let dice_info = use_state::<HashMap<Color, DieInfo>, _>(|| {
+    [
+      (Color::Yellow, DieInfo::new()),
+      (Color::Green, DieInfo::new()),
+      (Color::Blue, DieInfo::new()),
+      (Color::Red, DieInfo::new()),
+    ]
+    .iter()
+    .cloned()
+    .collect::<HashMap<_, _>>()
+  });
 
   let handle_message = {
     let game = game.clone();
     let dice_info = dice_info.clone();
-    Callback::from(move |message: ServerMessage| {
-      match message {
-        ServerMessage::GameUpdate(new_game) => game.set(new_game),
-        ServerMessage::GameStarted(new_game) => {
-          log!("game started recieved from server");
-          game.set(new_game)
-        },
-        ServerMessage::DiceValue(number, can_roll) => {
-          let mut new_map = (*dice_info).clone();
-          new_map.insert((*game).current_player.clone(), DieInfo { number, can_roll} );
-          dice_info.set(new_map);
-        }
-        ServerMessage::Error(message) => {
-          open.emit(SnackbarOptions {message, toast_type: ToastType::Error});
-        },
-        message => {
-          log!("message fell through", serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string()));
-        },
+    Callback::from(move |message: ServerMessage| match message {
+      ServerMessage::GameUpdate(new_game) => game.set(new_game),
+      ServerMessage::GameStarted(new_game) => {
+        log!("game started recieved from server");
+        game.set(new_game)
+      }
+      ServerMessage::DiceValue(number, can_roll) => {
+        let mut new_map = (*dice_info).clone();
+        new_map.insert((*game).current_player.clone(), DieInfo { number, can_roll });
+        dice_info.set(new_map);
+      }
+      ServerMessage::Error(message) => {
+        open.emit(SnackbarOptions {
+          message,
+          toast_type: ToastType::Error,
+        });
+      }
+      message => {
+        log!(
+          "message fell through",
+          serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string())
+        );
       }
     })
   };

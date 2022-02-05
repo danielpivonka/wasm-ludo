@@ -5,10 +5,11 @@ use yew::prelude::*;
 
 use crate::components::board::Board;
 use crate::components::player::{Player, PlayerButtonPosition};
+use crate::context;
 use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 use crate::models::messages::{ClientMessage, ServerMessage};
-
+use crate::utils::color_to_name::color_to_name;
 #[derive(Properties, PartialEq, Clone)]
 pub struct GameProps {
   pub id: String,
@@ -19,6 +20,7 @@ pub fn game(props: &GameProps) -> Html {
   let GameProps { id } = props.clone();
   let subscribe = context.subscribe;
   let sender = context.sender;
+  let game = context.game;
   {
     let id = id.clone();
     use_effect_with_deps(
@@ -27,12 +29,12 @@ pub fn game(props: &GameProps) -> Html {
           move |message: ServerMessage| match message {
             ServerMessage::DiceValue(roll, repeat) => {
               log!(roll)
-            },
+            }
             ServerMessage::GameStarted(_) => {
               log!("game started recieved from server in subscribe callback");
-            },
+            }
             ServerMessage::Error(msg) => log!(msg),
-            _ => {},
+            _ => {}
           },
         ));
 
@@ -45,15 +47,15 @@ pub fn game(props: &GameProps) -> Html {
   html! {
     <div class="py-4 flex">
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
-        <Player name={"John"} position={PlayerButtonPosition::Top} color={Color::Green} />
+        <Player position={PlayerButtonPosition::Bottom} color={Color::Yellow} />
+        <Player position={PlayerButtonPosition::Top} color={Color::Green} />
       </div>
       <div class="flex-grow">
         <Board />
       </div>
       <div class="flex flex-col justify-between item-center p-4 max-w-md flex-grow">
-        <Player name={"John"} position={PlayerButtonPosition::Bottom} color={Color::Blue} />
-        <Player name={"John"} position={PlayerButtonPosition::Top} color={Color::Red} />
+        <Player position={PlayerButtonPosition::Bottom} color={Color::Blue} />
+        <Player position={PlayerButtonPosition::Top} color={Color::Red} />
       </div>
     </div>
   }

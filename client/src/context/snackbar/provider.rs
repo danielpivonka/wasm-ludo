@@ -1,21 +1,29 @@
 use yew::prelude::*;
 
-use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, ToastType};
 use crate::components::button::Button;
 use crate::components::icon::Icon;
+use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, ToastType};
 
 use super::hook::{use_snackbar, UseToastValues};
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct SnackbarProviderProps {
   #[prop_or_default]
-  pub children: Children
+  pub children: Children,
 }
 
 #[function_component(SnackbarProvider)]
 pub fn snackbar_provider(props: &SnackbarProviderProps) -> Html {
-  let UseToastValues { open, is_open, options, close } = use_snackbar();
-  let SnackbarOptions {message, toast_type} = options;
+  let UseToastValues {
+    open,
+    is_open,
+    options,
+    close,
+  } = use_snackbar();
+  let SnackbarOptions {
+    message,
+    toast_type,
+  } = options;
 
   let context = SnackbarContext { open };
   let variant_class = match toast_type {

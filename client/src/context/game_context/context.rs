@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use crate::models::{
   color::Color,
+  die_info::DieInfo,
   game::Game,
   messages::{ClientMessage, ServerMessage},
-  player::Player, die_info::DieInfo,
+  player::Player,
 };
 use futures::channel::mpsc::Sender;
 use yew::Callback;

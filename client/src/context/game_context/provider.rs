@@ -1,8 +1,8 @@
 use yew::prelude::*;
 
 use super::{
-  hook::{use_game, UseGameProps},
   context::GameContext,
+  hook::{use_game, UseGameProps},
 };
 
 #[derive(Properties, PartialEq, Clone)]
