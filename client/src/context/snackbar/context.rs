@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum ToastType {
+pub enum SanckbarVariant {
   Success,
   Warning,
   Error,
@@ -10,7 +10,7 @@ pub enum ToastType {
 #[derive(PartialEq, Clone, Debug)]
 pub struct SnackbarOptions {
   pub message: String,
-  pub toast_type: ToastType,
+  pub variant: SanckbarVariant,
 }
 
 #[derive(PartialEq, Clone, Debug)]

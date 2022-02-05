@@ -11,7 +11,7 @@ use yew::prelude::*;
 use gloo::console::log;
 use gloo::storage::{SessionStorage, Storage};
 
-use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, ToastType};
+use crate::context::snackbar::context::{SanckbarVariant, SnackbarContext, SnackbarOptions};
 use crate::models::color::Color;
 use crate::models::die_info::DieInfo;
 use crate::models::game::Game;
@@ -59,7 +59,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
       ServerMessage::Error(message) => {
         open.emit(SnackbarOptions {
           message,
-          toast_type: ToastType::Error,
+          variant: SanckbarVariant::Error,
         });
       }
       message => {

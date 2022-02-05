@@ -2,7 +2,7 @@ use yew::prelude::*;
 
 use crate::components::button::Button;
 use crate::components::icon::Icon;
-use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, ToastType};
+use crate::context::snackbar::context::{SanckbarVariant, SnackbarContext, SnackbarOptions};
 
 use super::hook::{use_snackbar, UseToastValues};
 
@@ -20,22 +20,19 @@ pub fn snackbar_provider(props: &SnackbarProviderProps) -> Html {
     options,
     close,
   } = use_snackbar();
-  let SnackbarOptions {
-    message,
-    toast_type,
-  } = options;
+  let SnackbarOptions { message, variant } = options;
 
   let context = SnackbarContext { open };
-  let variant_class = match toast_type {
-    ToastType::Success => "text-green-600",
-    ToastType::Warning => "text-yellow-600",
-    ToastType::Error => "text-red-600",
+  let variant_class = match variant {
+    SanckbarVariant::Success => "text-green-600",
+    SanckbarVariant::Warning => "text-yellow-600",
+    SanckbarVariant::Error => "text-red-600",
   };
 
-  let icon = match toast_type {
-    ToastType::Success => html! { <Icon class="fas fa-check" /> },
-    ToastType::Warning => html! { <Icon class="fas fa-exclamation" /> },
-    ToastType::Error => html! { <Icon class="fas fa-bug" /> },
+  let icon = match variant {
+    SanckbarVariant::Success => html! { <Icon class="fas fa-check" /> },
+    SanckbarVariant::Warning => html! { <Icon class="fas fa-exclamation" /> },
+    SanckbarVariant::Error => html! { <Icon class="fas fa-bug" /> },
   };
 
   let onclick = Callback::from(move |_| {
