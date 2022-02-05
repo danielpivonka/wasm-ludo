@@ -13,10 +13,11 @@ use yew::Callback;
 #[derive(Clone, Debug, PartialEq)]
 pub struct GameContext {
   pub game: Game,
+  pub player_color: Color,
   pub player_count: u32,
   pub subscribe: Callback<Callback<ServerMessage>>,
   pub sender: Option<MsgSender>,
-  pub players: HashMap<Color, Player>,
+  // pub players: HashMap<Color, Player>,
   pub current_player: Color,
   pub dice_info: HashMap<Color, DieInfo>,
 }
@@ -28,8 +29,4 @@ impl PartialEq for MsgSender {
   fn eq(&self, _other: &Self) -> bool {
     true
   }
-
-  // fn ne(&self, _other: &Self) -> bool {
-  //   false
-  // }
 }

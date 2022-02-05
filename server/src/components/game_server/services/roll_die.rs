@@ -1,4 +1,5 @@
 use super::super::actor::GameServerState;
+use super::move_bot::move_bot;
 use crate::components::game_server::services::utils::{send_roll_message, skip_player};
 use crate::{
   components::{game::database, game_server::utils::send_message},
@@ -157,6 +158,7 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
   let rolls_sum: usize = game.dice_throws.clone().iter().sum();
   if rolls_sum == 18 {
     let _ = skip_player(state.clone(), &msg, &mut game).await;
+    move_bot(state.clone(), &msg, &mut game).await;
     return;
   }
 
@@ -167,12 +169,14 @@ pub async fn roll_dice(state: GameServerState, msg: ClientActorMessage) {
     && game.get_current_player().pawns_at_start + game.get_current_player().pawns_at_finish == 4
   {
     let _ = skip_player(state.clone(), &msg, &mut game).await;
+    move_bot(state.clone(), &msg, &mut game).await;
     return;
   }
 
   let available_positions = get_available_positions(&game, rolls_sum);
   if no_available_positions(&available_positions) {
     let _ = skip_player(state.clone(), &msg, &mut game).await;
+    move_bot(state.clone(), &msg, &mut game).await;
     // else branch can be removed with early return, but maybe less readable ?
   } else {
     // send available positions to player (he should choose one of the positions / promote) and update round_phase

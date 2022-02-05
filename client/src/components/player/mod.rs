@@ -7,6 +7,7 @@ use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
 use crate::utils::color_to_name::color_to_name;
 use futures::SinkExt;
+use gloo::console::log;
 use gloo::timers::callback::Timeout;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -29,7 +30,7 @@ pub struct PlayerProps {
 pub fn player(props: &PlayerProps) -> Html {
   let PlayerProps { position, color } = props.clone();
   let GameContext {
-    current_player,
+    player_color,
     game,
     dice_info,
     sender,
@@ -72,8 +73,10 @@ pub fn player(props: &PlayerProps) -> Html {
     );
   }
 
-  let button = if current_player == color {
-    html! { <Button {icon} onclick={roll} disabled={!die_info.can_roll || *is_rolling}>{"Roll the die"}</Button> }
+  let disabled = !die_info.can_roll || *is_rolling || player_color != color;
+
+  let button = if player_color == color {
+    html! { <Button {icon} onclick={roll} { disabled }>{"Roll the die"}</Button> }
   } else {
     html! {}
   };

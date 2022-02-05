@@ -432,9 +432,7 @@ impl Game {
   }
   pub fn promote_piece(&mut self, dice_value: usize) -> MoveResult {
     match self.can_promote_piece(dice_value) {
-      false => MoveResult::Error(String::from(
-        "We can't promote - starting field is occupied by our piece.",
-      )),
+      false => MoveResult::Error(String::from("You can't promote a piece.")),
       true => {
         let mut position = self.get_starting_position();
         // self.clear_field(position);  // would remove enemy at starting position
@@ -506,6 +504,10 @@ impl Game {
 
   pub fn is_current_player_ai(&self) -> bool {
     self.is_player_ai(self.current_player)
+  }
+
+  pub fn get_player_by_id(&self, id: &str) -> Option<&Player> {
+    self.players.iter().find(|player| player.id == id)
   }
 }
 

@@ -1,4 +1,3 @@
-use gloo::dialogs::alert;
 use gloo::storage::{SessionStorage, Storage};
 use reqwasm::http::Request;
 use serde::Deserialize;

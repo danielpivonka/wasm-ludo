@@ -8,8 +8,8 @@ use tokio::sync::Mutex;
 
 use super::{
   services::{
-    move_piece::move_piece, promote_piece::promote_piece, roll_die::roll_dice,
-    start_game::start_game,
+    connect_client::connect_client, move_piece::move_piece, promote_piece::promote_piece,
+    roll_die::roll_dice, start_game::start_game,
   },
   utils::send_message_to_room,
 };
@@ -64,7 +64,10 @@ impl Handler<Connect> for GameServer {
   type Result = ();
 
   fn handle(&mut self, msg: Connect, _: &mut Context<Self>) {
-    self.sessions.insert(msg.player_id.clone(), msg.address);
+    println!("connected player with id: {}", msg.player_id);
+    self
+      .sessions
+      .insert(msg.player_id.clone(), msg.address.clone());
     self
       .rooms
       .entry(msg.room_id.clone())
@@ -81,6 +84,15 @@ impl Handler<Connect> for GameServer {
       self.rooms.clone(),
       msg.room_id.as_str(),
     );
+
+    let state = self.get_state();
+    actix_web::rt::spawn(async move {
+      println!(
+        "responded with connect message to player: {}",
+        msg.player_id
+      );
+      connect_client(state, &msg).await;
+    });
   }
 }
 

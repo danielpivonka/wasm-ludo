@@ -13,6 +13,7 @@ pub enum ServerMessage {
   PlayerCountChange(usize),
   GameStarted(Game),
   Error(String),
+  ConnectResponse(Game, Color),
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]

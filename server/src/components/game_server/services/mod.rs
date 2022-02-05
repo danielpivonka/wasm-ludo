@@ -1,3 +1,4 @@
+pub mod connect_client;
 pub mod move_bot;
 pub mod move_piece;
 pub mod promote_piece;
