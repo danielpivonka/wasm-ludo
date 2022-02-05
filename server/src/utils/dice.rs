@@ -5,32 +5,25 @@ pub fn get_dice_value() -> usize {
   rng.gen_range(5..7)
 }
 
+// TODO: can be removed if we switch to new version of move_bot()
 pub fn throw_dice() -> usize {
-  let mut dice_value: usize = 0;
-  // player/client sends MessageType::ThrowDice
-  // << message exchange >>
+  let mut throw_sum: usize = 0;
   match get_dice_value() {
     6 => {
-      dice_value += 6;
-      // << message exchange >>;
+      throw_sum += 6;
+      // send ServerMessage::DiceValue(6, false)
       match get_dice_value() {
         6 => {
-          dice_value += 6;
+          throw_sum += 6;
+          let roll = get_dice_value();
           // << message exchange >>;
-          match get_dice_value() {
-            // if we throw 6 three times, it gets reset
-            6 => {
-              dice_value = 0;
-              // << message exchange >>
-            }
-            n => dice_value += n,
-          }
+          throw_sum += roll;
         }
-        n => dice_value += n,
+        n => throw_sum += n,
       }
     }
-    n => dice_value += n,
+    n => throw_sum += n,
   }
 
-  dice_value
+  throw_sum
 }

@@ -1,23 +1,27 @@
-use crate::components::game::database::{find_game, update};
 use crate::models::color::Color;
 use crate::models::game::Game;
 use crate::models::player::Player;
-use crate::utils::bot::{create_bot_name, make_a_move_bot};
+use crate::utils::bot::create_bot_name;
 use crate::utils::enums::MoveResult;
 use crate::utils::player::make_a_move;
-use mongodb::bson::Document;
-use mongodb::{
-  bson::{self, doc},
-  Database,
-};
-use std::sync::{Arc, Mutex};
+// use crate::components::game::database::{find_game, update};
+// use mongodb::bson::Document;
+// use mongodb::{
+//   bson::{self, doc},
+//   Database,
+// };
+// use std::sync::{Arc, Mutex};
 
 use super::enums::MoveType;
 
 pub fn fill_with_bots(players: Vec<Player>) -> Vec<Player> {
   let colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow];
   colors.iter().fold(Vec::new(), |mut acc, color| {
-    if let Some(player) = players.iter().cloned().find(|player| player.color == *color) {
+    if let Some(player) = players
+      .iter()
+      .cloned()
+      .find(|player| player.color == *color)
+    {
       acc.push(player);
       acc
     } else {
@@ -55,20 +59,19 @@ pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
 }
 
 // called upon receiving either PromotePiece or MovePiece(position, Option<Color>)
-// TODO: use struct Position { position: usize, is_home: bool }
 pub async fn play_round(game: &mut Game, move_type: MoveType) -> MoveResult {
-
   let mut move_result = make_a_move(game, move_type);
-  
+
   if let Some(winner) = game.check_winner() {
     move_result = MoveResult::Winner(winner);
+    game.finish_game(winner);
   }
-  
+
   if let MoveResult::Success(_) = move_result {
     game.update_current_player();
     game.dice_throws.clear();
   }
-  
+
   move_result
   // match move_result {
   //   MoveResult::Winner(winner) => {

@@ -29,7 +29,7 @@ pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, positio
   };
   if game.round_phase != RoundPhase::Moving {
     let message =
-        serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
+      serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   }

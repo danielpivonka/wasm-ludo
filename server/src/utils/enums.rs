@@ -15,7 +15,7 @@ pub enum ClientMessage {
 pub enum ServerMessage {
   DiceValue(usize, bool), // response to ThrowDice - bool: whether player should throw again
   AvailablePositions(Vec<usize>, Vec<usize>, bool), // position of pieces that can make a valid move (based on dice value)
-  SkipPlayer,             // followed by GameUpdate ?
+  SkipPlayer,
   PiecePromoted, // response to PromotePiece - maybe use MoveSuccessful("Piece promoted") instead ?
   GameUpdate(Game),
   PlayerCountChange(usize),
@@ -23,23 +23,20 @@ pub enum ServerMessage {
   Error(String),
 }
 
-// TODO: make MoveResult more detailed - instead of just Success/Error:
-// PiecePromoted, PieceFinished, ...
-// (MoveBlocked / MoveSkipped / ... depends on whether this is checked in FE -
-//   server provides precomputed positions of player's pieces which can be moved)
-//
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize, Clone)]
 pub enum MoveResult {
   Winner(Color),
   Success(String),
   Error(String),
 }
+
 pub enum MoveType {
   Promote,
   Move(Position),
 }
-#[derive(Debug, Deserialize, Eq, PartialEq, Serialize,Clone, Copy)]
 
-pub enum RoundPhase{
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize, Clone, Copy)]
+pub enum RoundPhase {
   Rolling,
-  Moving
+  Moving,
 }

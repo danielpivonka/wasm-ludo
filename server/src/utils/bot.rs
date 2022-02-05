@@ -42,18 +42,14 @@ pub fn create_bot_name() -> String {
 // since make_a_move_bot() doesn't call play_round() - which takes care of game.update_next_player(),
 //   we have to take care of it in make_a_move_bot() separately
 // if bot made a successful move, we should move onto the next player
+// TODO: can be removed if move_bot_2() is used
 fn handle_bot_move_result(game: &mut Game, move_result: MoveResult) -> MoveResult {
-  match move_result {
-    MoveResult::Error(msg) => MoveResult::Error(msg),
-    MoveResult::Success(msg) => {
-      game.update_current_player();
-      MoveResult::Success(msg)
-    }
-    MoveResult::Winner(color) => {
-      // game.update_current_player();
-      MoveResult::Winner(color)
-    }
+  match move_result.clone() {
+    MoveResult::Success(_) => game.update_current_player(),
+    MoveResult::Winner(color) => game.finish_game(color),
+    MoveResult::Error(msg) => println!("handle_botove_result: MoveResult::Error: {}", msg),
   }
+  move_result
 }
 
 /// Algorithm:
@@ -64,12 +60,19 @@ fn handle_bot_move_result(game: &mut Game, move_result: MoveResult) -> MoveResul
 /// 5. add new piece to game
 /// 6. move any piece in game
 /// 7. move piece in home row
+// TODO: can be removed if move_bot_2() is used
 pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
   let player = game.get_player(game.current_player);
 
   let dice_value = throw_dice();
 
-  let positions = game.get_players_pieces_positions(&game.current_player);
+  // skip bot's move
+  if dice_value == 18 {
+    game.update_current_player();
+    return MoveResult::Success("Player skipped.".into());
+  }
+
+  let positions = game.get_players_pieces_positions(game.current_player);
 
   let piece_positions_to_jump_home: Vec<usize> = positions
     .clone()
@@ -86,7 +89,7 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
   let piece_positions_to_jump_to_finish: Vec<usize> = positions
     .clone()
     .into_iter()
-    .filter(|position| game.can_reach_finish(*position, dice_value))
+    .filter(|position| game.can_jump_to_finish(*position, dice_value))
     .collect();
 
   // we can choose first piece to move, since all of them will end up in home
@@ -141,7 +144,7 @@ pub fn make_a_move_bot(game: &mut Game) -> MoveResult {
     .clone()
     .into_iter()
     .enumerate()
-    .filter(|(_position, field)| game.is_occupied_by(field, &game.current_player))
+    .filter(|(_position, field)| game.is_occupied_by(field, game.current_player))
     .map(|(position, _field)| position)
     .filter(|&position| game.can_jump_from_home(position, dice_value))
     .collect();
