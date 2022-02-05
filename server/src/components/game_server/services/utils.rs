@@ -36,7 +36,7 @@ pub async fn send_roll_message(
   send_message_to_room(
     roll_message.as_str(),
     state.sessions.clone(),
-    state.rooms.clone(),
+    state.rooms,
     &msg.room_id,
   );
 }

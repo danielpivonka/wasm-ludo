@@ -1,59 +1,12 @@
-use crate::components::game::database;
 use crate::components::game_server::actor::GameServerState;
 use crate::components::game_server::services::utils::{
   send_game_update_message, send_roll_message, skip_player,
 };
-use crate::components::game_server::utils::{send_message, send_message_to_room};
 use crate::models::actor_messages::ClientActorMessage;
 use crate::models::game::Game;
-use crate::utils::bot::make_a_move_bot;
 use crate::utils::dice::get_dice_value;
-use crate::utils::enums::{MoveResult, ServerMessage};
+use crate::utils::enums::MoveResult;
 use tokio::time::{sleep, Duration};
-
-pub async fn move_bot(state: GameServerState, msg: &ClientActorMessage, game_state: &mut Game) {
-  while game_state.is_current_player_ai() {
-    sleep(Duration::from_millis(3000)).await;
-    let result = make_a_move_bot(game_state);
-    match result {
-      MoveResult::Success(_) => {
-        let game_state = database::update_game_state(&state.db, &msg.room_id, game_state)
-          .await
-          .unwrap();
-        let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
-        send_message_to_room(
-          update_message.as_str(),
-          state.sessions.clone(),
-          state.rooms.clone(),
-          &msg.room_id,
-        );
-      }
-      MoveResult::Winner(color) => {
-        game_state.finish_game(color);
-        let game_state = database::update_game_state(&state.db, &msg.room_id, game_state)
-          .await
-          .unwrap();
-        let update_message = serde_json::to_string(&ServerMessage::GameUpdate(game_state)).unwrap();
-        send_message_to_room(
-          update_message.as_str(),
-          state.sessions.clone(),
-          state.rooms.clone(),
-          &msg.room_id,
-        );
-
-        // to break while loop
-        return;
-      }
-      _ => {
-        println!("Bot move failed.");
-        return;
-        // let message =
-        //     serde_json::to_string(&ServerMessage::Error("Error executing move".into())).unwrap();
-        // send_message(message.as_str(), state.sessions.clone(), &msg.player_id);
-      }
-    }
-  }
-}
 
 // TODO:
 //  1) do we need to do anything else when winner is found except for calling finish_game() ?
@@ -93,7 +46,7 @@ fn move_result_update_game(game: &mut Game, move_result: MoveResult) {
 /// 8. move piece forward in home
 /// 9. If none of the above possible, there are no valid moves, skip turn.
 
-pub async fn move_bot_2(state: GameServerState, msg: &ClientActorMessage, game: &mut Game) {
+pub async fn move_bot(state: GameServerState, msg: &ClientActorMessage, game: &mut Game) {
   let mut game = game.clone();
   while game.is_current_player_ai() {
     sleep(Duration::from_millis(3000)).await; // TODO: add sleep to other bot messages?

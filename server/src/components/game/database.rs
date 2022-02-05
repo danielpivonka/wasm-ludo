@@ -4,13 +4,9 @@ use mongodb::{
   options::{FindOneAndUpdateOptions, ReturnDocument},
   Database,
 };
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
 
-use crate::{
-  models::{color::Color, game::Game, player::Player},
-  types::Field,
-};
+use crate::models::{game::Game, player::Player};
 
 pub async fn create_game(db: &Arc<Mutex<Database>>) -> anyhow::Result<String> {
   let db_mutex = db.lock().unwrap();

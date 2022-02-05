@@ -5,7 +5,6 @@ use futures::{SinkExt, StreamExt};
 use reqwasm::websocket::futures::WebSocket;
 use reqwasm::websocket::Message;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::console::log;
 use yew::prelude::*;
 
 use gloo::console::log;
@@ -29,7 +28,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
   let sender = use_state(|| None);
   let game_id = props.game_id.clone();
   let event_handler = use_state::<Option<Callback<ServerMessage>>, _>(|| None);
-  let game = use_state::<Game, _>(|| Game::new());
+  let game = use_state::<Game, _>(Game::new);
   let dice_info = use_state::<HashMap<Color, DieInfo>, _>(|| {
     [
       (Color::Yellow, DieInfo::new()),
@@ -65,7 +64,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
       message => {
         log!(
           "message fell through",
-          serde_json::to_string(&message).unwrap_or("couldnt parse message".to_string())
+          serde_json::to_string(&message).unwrap_or_else(|_| "couldnt parse message".to_string())
         );
       }
     })

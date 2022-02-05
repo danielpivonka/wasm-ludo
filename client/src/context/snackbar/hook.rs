@@ -35,7 +35,7 @@ pub fn use_snackbar() -> UseToastValues {
   };
 
   {
-    let is_open = (*is_open).clone();
+    let is_open = *is_open;
     let close = close.clone();
     use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
       move |is_open| {
@@ -55,7 +55,7 @@ pub fn use_snackbar() -> UseToastValues {
 
   UseToastValues {
     open,
-    is_open: (*is_open).clone(),
+    is_open: *is_open,
     options: (*options).clone(),
     close,
   }

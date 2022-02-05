@@ -3,13 +3,13 @@ use actix::{
   Running, StreamHandler, WrapFuture,
 };
 use actix_web_actors::ws;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use crate::components::game_server::actor::GameServer;
 use crate::models::actor_messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
 
-const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(10);
-const TIMEOUT: Duration = Duration::from_secs(15);
+// const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(10);
+// const TIMEOUT: Duration = Duration::from_secs(15);
 
 // Game session actor (for each connected client)
 // Sends messages to the GameServer actor who coordinates all connected sessions

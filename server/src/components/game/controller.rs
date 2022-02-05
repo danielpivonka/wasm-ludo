@@ -102,7 +102,7 @@ pub async fn init_websocket(
   );
   let resp = ws::start(session, &req, stream);
   println!("{:?}", resp);
-  resp.unwrap_or(HttpResponse::InternalServerError().body("Whoops"))
+  resp.unwrap_or_else(|_| HttpResponse::InternalServerError().body("Whoops"))
 }
 
 #[get("")]

@@ -1,5 +1,4 @@
 use crate::types::FieldType;
-use futures::stream::Collect;
 use serde::{Deserialize, Serialize};
 
 use crate::models::color::Color;

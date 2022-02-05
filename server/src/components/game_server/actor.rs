@@ -118,7 +118,7 @@ impl Handler<Disconnect> for GameServer {
 impl Handler<ClientActorMessage> for GameServer {
   type Result = ();
 
-  fn handle(&mut self, msg: ClientActorMessage, ctx: &mut Context<Self>) {
+  fn handle(&mut self, msg: ClientActorMessage, _ctx: &mut Context<Self>) {
     let result = serde_json::from_str::<ClientMessage>(msg.content.as_str());
 
     let message = match result {

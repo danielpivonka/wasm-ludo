@@ -1,5 +1,4 @@
 use futures::SinkExt;
-use gloo::console::log;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -55,11 +54,11 @@ pub fn field(props: &FieldProps) -> Html {
       .find(|player| player.color == color)
       .and_then(|player| player.home.get(position).unwrap_or(&None).clone())
   } else {
-    game.fields.get(position).clone()
+    game.fields.get(position)
   };
 
   let click_color = match variant {
-    FieldVariant::Home => Some(color.clone()),
+    FieldVariant::Home => Some(color),
     FieldVariant::Main => None,
   };
 
@@ -80,10 +79,10 @@ pub fn field(props: &FieldProps) -> Html {
   };
 
   let content = {
-    if let Some(color) = pawn_color.clone() {
+    if let Some(color) = pawn_color {
       html! { <Pawn {color} {onclick} /> }
     } else if raw_position == 6 {
-      html! { <Icon class={classes!(arrow_class.clone())} /> }
+      html! { <Icon class={classes!(arrow_class)} /> }
     } else {
       html! {}
     }

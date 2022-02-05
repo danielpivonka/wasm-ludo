@@ -1,6 +1,5 @@
 use yew::prelude::*;
 
-use crate::components::button::Button;
 use crate::components::icon::Icon;
 use crate::context::snackbar::context::{SanckbarVariant, SnackbarContext, SnackbarOptions};
 

@@ -36,28 +36,6 @@ pub fn fill_with_bots(players: Vec<Player>) -> Vec<Player> {
   })
 }
 
-pub fn initialize_players(player_names: Vec<String>) -> Vec<Player> {
-  let mut colors = [Color::Red, Color::Green, Color::Blue, Color::Yellow].iter();
-  let mut players = vec![];
-  for name in player_names {
-    players.push(Player::new(
-      "0".to_string(),
-      name,
-      *colors.next().unwrap(),
-      false,
-    ))
-  }
-  while players.len() < 4 {
-    players.push(Player::new(
-      "0".to_string(),
-      create_bot_name(),
-      *colors.next().unwrap(),
-      true,
-    ))
-  }
-  players
-}
-
 // called upon receiving either PromotePiece or MovePiece(position, Option<Color>)
 pub async fn play_round(game: &mut Game, move_type: MoveType) -> MoveResult {
   let mut move_result = make_a_move(game, move_type);

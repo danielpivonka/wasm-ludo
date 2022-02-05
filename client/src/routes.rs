@@ -33,7 +33,7 @@ pub enum GameRoute {
 fn switch_game(route: &GameRoute) -> Html {
   match route {
     GameRoute::GameLobby { id } => html! { <GameLobby id={ id.clone() } /> },
-    GameRoute::Game { id } => html! { <Game id={ id.clone() }/> },
+    GameRoute::Game { id: _ } => html! { <Game /> },
   }
 }
 

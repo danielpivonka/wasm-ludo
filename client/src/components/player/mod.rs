@@ -1,9 +1,3 @@
-use futures::SinkExt;
-use gloo::console::log;
-use gloo::timers::callback::{Interval, Timeout};
-use wasm_bindgen_futures::spawn_local;
-use yew::prelude::*;
-use crate::utils::color_to_name::color_to_name;
 use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::die::Die;
@@ -11,6 +5,12 @@ use crate::components::icon::Icon;
 use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
+use crate::utils::color_to_name::color_to_name;
+use futures::SinkExt;
+use gloo::console::log;
+use gloo::timers::callback::Timeout;
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
 
 #[derive(PartialEq, Clone)]
 pub enum PlayerButtonPosition {
@@ -28,10 +28,7 @@ pub struct PlayerProps {
 #[function_component(Player)]
 
 pub fn player(props: &PlayerProps) -> Html {
-  let PlayerProps {
-    position,
-    color,
-  } = props.clone();
+  let PlayerProps { position, color } = props.clone();
   let GameContext {
     current_player,
     game,
@@ -60,7 +57,7 @@ pub fn player(props: &PlayerProps) -> Html {
 
   {
     let is_rolling = is_rolling.clone();
-    let is_rolling_value = (*is_rolling).clone();
+    let is_rolling_value = *is_rolling;
     use_effect_with_deps::<_, Box<dyn FnOnce()>, _>(
       |is_rolling_value| {
         if !is_rolling_value {

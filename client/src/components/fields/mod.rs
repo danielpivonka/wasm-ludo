@@ -5,9 +5,6 @@ use std::iter::FromIterator;
 use yew::prelude::*;
 
 use crate::components::field::{Field, FieldVariant};
-use crate::components::icon::Icon;
-use crate::components::pawn::Pawn;
-use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 use crate::types::FieldType;
 
@@ -30,7 +27,6 @@ pub struct FieldsProps {
 
 #[function_component(Fields)]
 pub fn fields(props: &FieldsProps) -> Html {
-  let GameContext { game, .. } = use_context::<GameContext>().expect("context not found");
   let FieldsProps {
     color,
     position,

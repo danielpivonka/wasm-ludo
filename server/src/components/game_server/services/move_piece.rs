@@ -1,5 +1,4 @@
 use crate::components::game_server::services::move_bot::move_bot;
-use crate::utils::bot::make_a_move_bot;
 use crate::utils::enums::RoundPhase;
 use crate::{
   components::{
@@ -28,18 +27,14 @@ pub async fn move_piece(state: GameServerState, msg: ClientActorMessage, positio
     }
   };
   if game.round_phase != RoundPhase::Moving {
-    let message =
-      serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
+    let message = serde_json::to_string(&ServerMessage::Error(
+      "Moving a piece is not allowed now".into(),
+    ))
+    .unwrap();
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   }
-  let current_player_id = game
-    .players
-    .iter()
-    .find(|player| player.color == game.current_player)
-    .unwrap()
-    .id
-    .clone(); //TODO probably shouldn't unwrap
+  let current_player_id = game.get_current_player_id(); //TODO probably shouldn't unwrap
   if current_player_id != msg.player_id {
     let message =
       serde_json::to_string(&ServerMessage::Error("It is not your turn".into())).unwrap();

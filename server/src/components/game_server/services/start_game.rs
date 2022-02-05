@@ -2,7 +2,7 @@ use super::super::actor::GameServerState;
 use crate::{
   components::{
     game::database,
-    game_server::utils::{create_error_msg, send_message, send_message_to_room},
+    game_server::utils::{send_message, send_message_to_room},
   },
   models::actor_messages::ClientActorMessage,
   utils::{enums::ServerMessage, game::fill_with_bots},

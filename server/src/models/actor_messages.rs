@@ -1,7 +1,6 @@
 use actix::{Message, Recipient};
-use uuid::Uuid;
 
-// rtype -> return type of the message
+// `rtype` is a return type of the message
 
 #[derive(Message)]
 #[rtype(result = "()")]

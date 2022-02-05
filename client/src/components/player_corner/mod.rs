@@ -22,7 +22,7 @@ pub fn player_corner(props: &PlayerCornerProps) -> Html {
     .players
     .iter()
     .find(|player| player.color == color)
-    .and_then(|player| Some(player.pawns_at_start))
+    .map(|player| player.pawns_at_start)
     .unwrap_or(0);
   let pawn_count = clamp(pawn_count, 0, 4);
 

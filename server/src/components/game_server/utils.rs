@@ -1,7 +1,7 @@
 use actix::Recipient;
 use std::collections::{HashMap, HashSet};
 
-use crate::{models::actor_messages::WsMessage, utils::enums::ServerMessage};
+use crate::models::actor_messages::WsMessage;
 
 pub fn send_message(message: &str, sessions: HashMap<String, Recipient<WsMessage>>, id_to: &str) {
   if let Some(session) = sessions.get(id_to) {
@@ -22,9 +22,4 @@ pub fn send_message_to_room(
       send_message(message, sessions.clone(), session_id);
     }
   }
-}
-
-pub fn create_error_msg(message: &str) -> String {
-  serde_json::to_string(&ServerMessage::Error(message.into()))
-    .expect("failed to serialize error msg")
 }

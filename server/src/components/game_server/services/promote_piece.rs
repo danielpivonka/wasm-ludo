@@ -1,6 +1,5 @@
 use super::super::actor::GameServerState;
 use crate::components::game_server::services::move_bot::move_bot;
-use crate::utils::bot::make_a_move_bot;
 use crate::utils::enums::RoundPhase;
 use crate::{
   components::{
@@ -9,10 +8,8 @@ use crate::{
   },
   models::actor_messages::ClientActorMessage,
   utils::{
-    dice::get_dice_value,
     enums::{MoveResult, MoveType, ServerMessage},
     game::play_round,
-    player::get_available_positions,
   },
 };
 
@@ -33,13 +30,7 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   }
-  let current_player_id = game
-    .players
-    .iter()
-    .find(|player| player.color == game.current_player)
-    .unwrap()
-    .id
-    .clone(); //TODO probably shouldn't unwrap - can be replaced with game.get_current_player_id()
+  let current_player_id = game.get_current_player_id();
   if current_player_id != msg.player_id {
     let message =
       serde_json::to_string(&ServerMessage::Error("It is not your turn".into())).unwrap();

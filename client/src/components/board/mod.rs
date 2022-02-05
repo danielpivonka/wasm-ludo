@@ -3,7 +3,6 @@ use yew::prelude::*;
 use crate::components::board_middle::BoardMiddle;
 use crate::components::fields::{Fields, FieldsPosition};
 use crate::components::player_corner::PlayerCorner;
-use crate::context::game_context::context::GameContext;
 use crate::models::color::Color;
 
 #[function_component(Board)]

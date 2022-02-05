@@ -478,7 +478,7 @@ impl Game {
       .players
       .iter()
       .find(|&player| player.color == player_color)
-      .unwrap()
+      .unwrap() // TODO: remove unwrap
   }
 
   pub fn get_player_mut(&mut self, player_color: Color) -> &mut Player {
@@ -486,7 +486,7 @@ impl Game {
       .players
       .iter_mut()
       .find(|player| player.color == player_color)
-      .unwrap()
+      .unwrap() // TODO: remove unwrap
   }
 
   pub fn get_current_player(&self) -> &Player {
