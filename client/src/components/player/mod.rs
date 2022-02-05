@@ -78,7 +78,7 @@ pub fn player(props: &PlayerProps) -> Html {
   }
 
   let button = if current_player == color {
-    html! { <Button {icon} onclick={roll} disabled={!die_info.can_roll}>{"Roll the die"}</Button> }
+    html! { <Button {icon} onclick={roll} disabled={!die_info.can_roll || *is_rolling}>{"Roll the die"}</Button> }
   } else {
     html! {}
   };

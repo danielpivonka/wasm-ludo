@@ -45,7 +45,7 @@ pub fn snackbar_provider(props: &SnackbarProviderProps) -> Html {
   html! {
     <ContextProvider<SnackbarContext> context={context}>
       { for props.children.iter() }
-      <div class={classes!(String::from("absolute rounded border-2 shadow-2xl bg-neutral-50 border-neutral-300 left-5 bottom-5 p-3"), (!is_open).then(|| "hidden"))}>
+      <div class={classes!(String::from("fixed rounded border-2 shadow-2xl bg-neutral-50 border-neutral-300 left-5 bottom-5 p-3"), (!is_open).then(|| "hidden"))}>
         <div class="absolute top-0 right-2">
           <Icon class="text-sm fas fa-times text-neutral-600" {onclick} />
         </div>
