@@ -6,7 +6,8 @@ use dotenv::dotenv;
 use env_logger::Env;
 use mongodb::{options::ClientOptions, Client};
 use std::env;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 mod components;
 mod models;

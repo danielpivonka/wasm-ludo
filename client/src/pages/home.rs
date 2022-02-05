@@ -1,4 +1,3 @@
-use gloo::dialogs::alert;
 use reqwasm::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -9,21 +8,27 @@ use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
 
+use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, SnackbarVariant};
 use crate::routes::MainRoute;
 
 #[function_component(Home)]
 pub fn home() -> Html {
   let history = use_history().unwrap();
+  let SnackbarContext { open } = use_context::<SnackbarContext>().expect("context not found");
 
   let onclick = Callback::from(move |_| {
     let history = history.clone();
+    let open = open.clone();
     spawn_local(async move {
       let res = Request::post("http://127.0.0.1:8080/games").send().await;
 
       let resp = match res {
         Ok(resp) => resp,
         Err(_) => {
-          alert("something failed");
+          open.emit(SnackbarOptions {
+            message: "Request to server failed".into(),
+            variant: SnackbarVariant::Error,
+          });
           return;
         }
       };
@@ -31,7 +36,10 @@ pub fn home() -> Html {
       let id = match resp.text().await {
         Ok(id) => id,
         Err(_) => {
-          alert("something failed");
+          open.emit(SnackbarOptions {
+            message: "Server failed creating new game".into(),
+            variant: SnackbarVariant::Error,
+          });
           return;
         }
       };

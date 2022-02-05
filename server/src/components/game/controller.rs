@@ -107,7 +107,7 @@ pub async fn init_websocket(
 
 #[get("")]
 pub async fn get_games(data: web::Data<AppData>) -> HttpResponse {
-  let db = &data.db.lock().unwrap();
+  let db = &data.db.lock().await;
   let game_collection = db.collection::<Game>("games");
 
   let mut cursor = game_collection.find(None, None).await.unwrap();

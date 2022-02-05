@@ -4,12 +4,13 @@ use mongodb::{
   options::{FindOneAndUpdateOptions, ReturnDocument},
   Database,
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::models::{game::Game, player::Player};
 
 pub async fn create_game(db: &Arc<Mutex<Database>>) -> anyhow::Result<String> {
-  let db_mutex = db.lock().unwrap();
+  let db_mutex = db.lock().await;
   let game_collection = db_mutex.collection::<Game>("games");
   let mock_game = Game::new();
   let res = game_collection.insert_one(mock_game, None).await;
@@ -41,7 +42,7 @@ pub async fn add_player(
 }
 
 pub async fn find_game(db: &Arc<Mutex<Database>>, game_id: &str) -> anyhow::Result<Option<Game>> {
-  let db_mutex = db.lock().unwrap();
+  let db_mutex = db.lock().await;
   let game_collection = db_mutex.collection::<Game>("games");
   let oid = match ObjectId::parse_str(game_id) {
     Ok(res) => res,
@@ -143,7 +144,7 @@ async fn update_game(
   filter: Document,
   update: Document,
 ) -> anyhow::Result<Game> {
-  let db_mutex = db.lock().unwrap();
+  let db_mutex = db.lock().await;
   let game_collection = db_mutex.collection::<Game>("games");
   let option = FindOneAndUpdateOptions::builder()
     .return_document(ReturnDocument::After)

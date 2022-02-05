@@ -4,13 +4,6 @@ use crate::models::player::Player;
 use crate::utils::bot::create_bot_name;
 use crate::utils::enums::MoveResult;
 use crate::utils::player::make_a_move;
-// use crate::components::game::database::{find_game, update};
-// use mongodb::bson::Document;
-// use mongodb::{
-//   bson::{self, doc},
-//   Database,
-// };
-// use std::sync::{Arc, Mutex};
 
 use super::enums::MoveType;
 

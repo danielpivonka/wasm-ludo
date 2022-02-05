@@ -2,8 +2,9 @@ use actix::prelude::{Actor, Context, Handler, Recipient};
 use mongodb::Database;
 use std::{
   collections::{HashMap, HashSet},
-  sync::{Arc, Mutex},
+  sync::Arc,
 };
+use tokio::sync::Mutex;
 
 use super::{
   services::{

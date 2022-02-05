@@ -90,6 +90,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
         spawn_local(async move {
           // TODO: handle errors as well
           while let Some(Ok(Message::Text(text))) = read.next().await {
+            log!(text.clone());
             if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
               handle_message.emit(message.clone());
               callback.emit(message.clone());

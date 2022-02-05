@@ -79,7 +79,10 @@ pub fn game_join(props: &GameJoinProps) -> Html {
         };
 
         if !resp.ok() {
-          alert("something failed");
+          open.emit(SnackbarOptions {
+            message: "Couldn't join game".into(),
+            variant: SnackbarVariant::Error,
+          });
           return;
         };
 
