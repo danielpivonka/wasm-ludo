@@ -1,7 +1,7 @@
 use gloo::timers::callback::Timeout;
 use yew::prelude::*;
 
-use super::context::{SanckbarVariant, SnackbarOptions};
+use super::context::{SnackbarOptions, SnackbarVariant};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct UseToastValues {
@@ -15,7 +15,7 @@ pub fn use_snackbar() -> UseToastValues {
   let is_open = use_state(|| false);
   let options = use_state(|| SnackbarOptions {
     message: "".into(),
-    variant: SanckbarVariant::Success,
+    variant: SnackbarVariant::Success,
   });
 
   let close = {

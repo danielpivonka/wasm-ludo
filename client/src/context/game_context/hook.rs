@@ -10,7 +10,7 @@ use yew::prelude::*;
 use gloo::console::log;
 use gloo::storage::{SessionStorage, Storage};
 
-use crate::context::snackbar::context::{SanckbarVariant, SnackbarContext, SnackbarOptions};
+use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, SnackbarVariant};
 use crate::models::color::Color;
 use crate::models::die_info::DieInfo;
 use crate::models::game::Game;
@@ -46,10 +46,7 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
     let dice_info = dice_info.clone();
     Callback::from(move |message: ServerMessage| match message {
       ServerMessage::GameUpdate(new_game) => game.set(new_game),
-      ServerMessage::GameStarted(new_game) => {
-        log!("game started recieved from server");
-        game.set(new_game)
-      }
+      ServerMessage::GameStarted(new_game) => game.set(new_game),
       ServerMessage::DiceValue(number, can_roll) => {
         let mut new_map = (*dice_info).clone();
         new_map.insert((*game).current_player.clone(), DieInfo { number, can_roll });
@@ -58,15 +55,10 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
       ServerMessage::Error(message) => {
         open.emit(SnackbarOptions {
           message,
-          variant: SanckbarVariant::Error,
+          variant: SnackbarVariant::Error,
         });
       }
-      message => {
-        log!(
-          "message fell through",
-          serde_json::to_string(&message).unwrap_or_else(|_| "couldnt parse message".to_string())
-        );
-      }
+      _ => {}
     })
   };
 
@@ -98,17 +90,14 @@ pub fn use_game(props: &UseGameProps) -> GameContext {
         spawn_local(async move {
           // TODO: handle errors as well
           while let Some(Ok(Message::Text(text))) = read.next().await {
-            log!("message: ", text.clone());
             if let Ok(message) = serde_json::from_str::<ServerMessage>(text.as_str()) {
               handle_message.emit(message.clone());
               callback.emit(message.clone());
-              log!(format!("1. {:?}", message.clone()));
-              log!("parsing ok");
             } else {
-              log!("parsing failed");
+              log!("Parsing of message failed:\n", text);
             }
           }
-          log!("WebSocket Closed")
+          log!("WEBSOCKET CLOSED")
         });
 
         spawn_local(async move {

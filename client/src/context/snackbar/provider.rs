@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 use crate::components::icon::Icon;
-use crate::context::snackbar::context::{SanckbarVariant, SnackbarContext, SnackbarOptions};
+use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, SnackbarVariant};
 
 use super::hook::{use_snackbar, UseToastValues};
 
@@ -23,15 +23,15 @@ pub fn snackbar_provider(props: &SnackbarProviderProps) -> Html {
 
   let context = SnackbarContext { open };
   let variant_class = match variant {
-    SanckbarVariant::Success => "text-green-600",
-    SanckbarVariant::Warning => "text-yellow-600",
-    SanckbarVariant::Error => "text-red-600",
+    SnackbarVariant::Success => "text-green-600",
+    SnackbarVariant::Warning => "text-yellow-600",
+    SnackbarVariant::Error => "text-red-600",
   };
 
   let icon = match variant {
-    SanckbarVariant::Success => html! { <Icon class="fas fa-check" /> },
-    SanckbarVariant::Warning => html! { <Icon class="fas fa-exclamation" /> },
-    SanckbarVariant::Error => html! { <Icon class="fas fa-bug" /> },
+    SnackbarVariant::Success => html! { <Icon class="fas fa-check" /> },
+    SnackbarVariant::Warning => html! { <Icon class="fas fa-exclamation" /> },
+    SnackbarVariant::Error => html! { <Icon class="fas fa-bug" /> },
   };
 
   let onclick = Callback::from(move |_| {

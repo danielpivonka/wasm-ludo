@@ -1,6 +1,5 @@
 // use futures::channel::oneshot::channel;
 use futures::SinkExt;
-use gloo::console::log;
 use gloo::timers::callback::Interval;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -23,14 +22,14 @@ pub struct GameLobbyProps {
 
 #[function_component(GameLobby)]
 pub fn game_lobby(props: &GameLobbyProps) -> Html {
-  let context = use_context::<GameContext>().expect("provider is not a parent");
   let GameLobbyProps { id } = props.clone();
+  let GameContext {
+    subscribe, sender, ..
+  } = use_context::<GameContext>().expect("provider is not a parent");
   let history = use_history().unwrap();
   let player_count = use_state(|| 0);
   let seconds = use_state(|| 0);
 
-  let subscribe = context.subscribe;
-  let sender = context.sender;
   {
     let id = id.clone();
     let history = history.clone();
@@ -43,7 +42,6 @@ pub fn game_lobby(props: &GameLobbyProps) -> Html {
             ServerMessage::GameStarted(_) => {
               history.push(GameRoute::Game { id: id.clone() });
             }
-            ServerMessage::Error(msg) => log!(msg),
             _ => {}
           },
         ));

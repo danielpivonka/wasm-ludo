@@ -7,7 +7,6 @@ use crate::models::color::Color;
 use crate::models::messages::ClientMessage;
 use crate::utils::color_to_name::color_to_name;
 use futures::SinkExt;
-use gloo::console::log;
 use gloo::timers::callback::Timeout;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -38,7 +37,6 @@ pub fn player(props: &PlayerProps) -> Html {
   } = use_context::<GameContext>().expect("context not found");
   let die_info = dice_info.get(&color).expect("die info not set for player");
   let is_rolling = use_state(|| false);
-  log!("dice in state: ", die_info.number);
 
   let icon = html! { <Icon class="fas fa-sync-alt" /> };
 

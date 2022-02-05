@@ -1,11 +1,8 @@
 use gloo::dialogs::alert;
-use gloo::{
-  console::log,
-  storage::{SessionStorage, Storage},
-};
+use gloo::storage::{SessionStorage, Storage};
 use reqwasm::http::Request;
 use serde::Deserialize;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -16,6 +13,7 @@ use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::text_input::TextInput;
+use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, SnackbarVariant};
 use crate::routes::GameRoute;
 
 #[derive(Properties, PartialEq, Clone)]
@@ -31,6 +29,7 @@ pub struct JoinGameBody {
 #[function_component(GameJoin)]
 pub fn game_join(props: &GameJoinProps) -> Html {
   let GameJoinProps { id } = props.clone();
+  let SnackbarContext { open } = use_context().expect("context not found");
   let history = use_history().unwrap();
   let nickname = use_state::<String, _>(|| "".into());
 
@@ -53,6 +52,7 @@ pub fn game_join(props: &GameJoinProps) -> Html {
   let onclick = {
     let nickname = nickname.clone();
     Callback::from(move |_| {
+      let open = open.clone();
       let nickname = nickname.clone();
       let id = id.clone();
       let history = history.clone();
@@ -61,7 +61,6 @@ pub fn game_join(props: &GameJoinProps) -> Html {
           name: (*nickname).clone(),
         };
         let body_json = serde_json::to_string(&body).unwrap();
-        log!("value:", body_json.clone());
         let res = Request::put(format!("http://127.0.0.1:8080/games/{}", id).as_str())
           .header("Content-Type", "application/json")
           .body(body_json)
@@ -71,8 +70,10 @@ pub fn game_join(props: &GameJoinProps) -> Html {
         let resp = match res {
           Ok(resp) => resp,
           Err(e) => {
-            alert("something failed");
-            log!("{}", JsValue::from(e.to_string().as_str()));
+            open.emit(SnackbarOptions {
+              message: e.to_string(),
+              variant: SnackbarVariant::Error,
+            });
             return;
           }
         };
@@ -85,14 +86,19 @@ pub fn game_join(props: &GameJoinProps) -> Html {
         let player_id = match resp.text().await {
           Ok(player_id) => player_id,
           Err(e) => {
-            alert("something failed");
-            log!("{}", JsValue::from(e.to_string().as_str()));
+            open.emit(SnackbarOptions {
+              message: e.to_string(),
+              variant: SnackbarVariant::Error,
+            });
             return;
           }
         };
 
         if SessionStorage::set("player_id", player_id).is_err() {
-          alert("something failed");
+          open.emit(SnackbarOptions {
+            message: "Failed to set your player id".into(),
+            variant: SnackbarVariant::Error,
+          });
           return;
         };
 
