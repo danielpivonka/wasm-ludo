@@ -29,7 +29,7 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
   };
   if game.round_phase != RoundPhase::Moving {
     let message =
-        serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
+      serde_json::to_string(&ServerMessage::Error("Promoting is not allowed now".into())).unwrap();
     send_message(message.as_str(), state.sessions, &msg.player_id);
     return;
   }
@@ -39,7 +39,7 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
     .find(|player| player.color == game.current_player)
     .unwrap()
     .id
-    .clone(); //TODO probably shouldn't unwrap
+    .clone(); //TODO probably shouldn't unwrap - can be replaced with game.get_current_player_id()
   if current_player_id != msg.player_id {
     let message =
       serde_json::to_string(&ServerMessage::Error("It is not your turn".into())).unwrap();
@@ -65,14 +65,17 @@ pub async fn promote_piece(state: GameServerState, msg: ClientActorMessage) {
       move_bot(state.clone(), &msg, &mut game_state).await;
     }
     MoveResult::Error(e) => {
-      let message =
-        serde_json::to_string(&ServerMessage::Error(format!("Error executing move: {}",e))).unwrap();
+      let message = serde_json::to_string(&ServerMessage::Error(format!(
+        "Error executing move: {}",
+        e
+      )))
+      .unwrap();
       send_message(message.as_str(), state.sessions, &msg.player_id);
     }
     _ => {
-      let message = serde_json::to_string(&ServerMessage::Error("Unknown error".into())).unwrap();
+      let message =
+        serde_json::to_string(&ServerMessage::Error("Promotion produced a winner".into())).unwrap();
       send_message(message.as_str(), state.sessions, &msg.player_id);
     }
-
   }
 }

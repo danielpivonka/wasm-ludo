@@ -1,5 +1,4 @@
 use crate::models::game::Game;
-use crate::models::player::Player;
 use crate::utils::enums::MoveResult;
 
 use super::enums::MoveType;
@@ -13,7 +12,7 @@ pub fn make_a_move(game: &mut Game, player_move: MoveType) -> MoveResult {
 }
 
 pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, Vec<usize>, bool) {
-  let positions = game.get_players_pieces_positions(&game.current_player);
+  let positions = game.get_players_pieces_positions(game.current_player);
   let player = game.get_current_player();
 
   let mut positions_on_board: Vec<usize> = positions
@@ -30,7 +29,7 @@ pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, V
 
   let mut piece_positions_to_jump_to_finish: Vec<usize> = positions
     .into_iter()
-    .filter(|position| game.can_reach_finish(*position, dice_value))
+    .filter(|position| game.can_jump_to_finish(*position, dice_value))
     .collect();
 
   positions_on_board.append(&mut piece_positions_to_jump_home);
@@ -38,15 +37,17 @@ pub fn get_available_positions(game: &Game, dice_value: usize) -> (Vec<usize>, V
 
   let can_promote = player.pawns_at_start > 0 && game.can_promote_piece(dice_value);
 
-  let piece_positions_in_home_row: Vec<usize> = player
-    .home
-    .clone()
-    .into_iter()
-    .enumerate()
-    .filter(|(_position, field)| field.is_some())
-    .map(|(position, _field)| position)
-    .filter(|&position| game.can_jump_from_home(position, dice_value))
-    .collect();
+  let piece_positions_in_home_row: Vec<usize> =
+    game.get_players_pieces_positions_in_home(player.color);
+  // player
+  // .home
+  // .clone()
+  // .into_iter()
+  // .enumerate()
+  // .filter(|(_position, field)| field.is_some())
+  // .map(|(position, _field)| position)
+  // .filter(|&position| game.can_jump_from_home(position, dice_value))
+  // .collect();
 
   (positions_on_board, piece_positions_in_home_row, can_promote)
 }

@@ -62,7 +62,7 @@ pub async fn find_game(db: &Arc<Mutex<Database>>, game_id: &str) -> anyhow::Resu
 // pub async fn update_board(
 //   db: &Arc<Mutex<Database>>,
 //   game_id: &str,
-//   fields: Vec<Field>, // TODO: replaced Color with Field - does that fuck up anything?
+//   fields: Vec<Field>,
 // ) -> anyhow::Result<Game> {
 //   let serialized_fields = bson::to_bson(&fields)?;
 //   let oid = match ObjectId::parse_str(game_id) {
