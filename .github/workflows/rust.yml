@@ -1,0 +1,30 @@
+name: Rust
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install trunk
+      run: cargo install trunk --verbose
+    - name: cd
+      run: cd client
+    - name: package
+      run: trunk build
+    - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+      with:
+        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+        heroku_app_name: "LUDO WASM FRONTEND" #Must be unique in Heroku
+        heroku_email: "daniel.pivonka98@gmail.com"
+        appdir: /client/dist
