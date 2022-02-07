@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: install target
+      run: rustup target add wasm32-unknown-unknown
     - name: install trunk
       run: cargo install trunk --verbose
     - name: package
