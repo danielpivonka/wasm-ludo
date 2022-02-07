@@ -22,9 +22,8 @@ jobs:
       run: cargo install trunk --verbose
     - name: package
       run: cd client && trunk build
-    - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@v4.2.3
       with:
-        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-        heroku_app_name: "ludo-fe" #Must be unique in Heroku
-        heroku_email: "daniel.pivonka98@gmail.com"
-        appdir: /client/dist
+          branch: gh-pages
+          folder: client/dist
