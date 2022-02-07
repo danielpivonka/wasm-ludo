@@ -18,10 +18,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: install trunk
       run: cargo install trunk --verbose
-    - name: cd
-      run: cd client
     - name: package
-      run: trunk build
+      run: cd client && trunk build
     - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
       with:
         heroku_api_key: ${{secrets.HEROKU_API_KEY}}
