@@ -7,7 +7,7 @@ use crate::components::button::Button;
 use crate::components::card::Card;
 use crate::components::content::Content;
 use crate::components::icon::Icon;
-
+use crate::utils::get_host::HTTP_STRING;
 use crate::context::snackbar::context::{SnackbarContext, SnackbarOptions, SnackbarVariant};
 use crate::routes::MainRoute;
 
@@ -20,7 +20,7 @@ pub fn home() -> Html {
     let history = history.clone();
     let open = open.clone();
     spawn_local(async move {
-      let res = Request::post("http://127.0.0.1:8080/games").send().await;
+      let res = Request::post(format!("{}/games",HTTP_STRING).as_str()).send().await;
 
       let resp = match res {
         Ok(resp) => resp,

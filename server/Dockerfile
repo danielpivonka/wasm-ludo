@@ -31,10 +31,8 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 ####################################################################################################
 FROM alpine:latest
 
-# Import from builder.
 
 WORKDIR /server
 
-# Copy our build
 COPY --from=builder /server/target/x86_64-unknown-linux-musl/release ./release
 CMD ["./release/server"]
