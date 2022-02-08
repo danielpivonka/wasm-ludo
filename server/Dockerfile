@@ -2,9 +2,11 @@
 ## Builder
 ####################################################################################################
 FROM rust:latest AS builder
+
+RUN rustup target add x86_64-unknown-linux-musl
+RUN apt update && apt install -y musl-tools musl-dev
 RUN update-ca-certificates
 
-# Create appuser
 ENV USER=server
 ENV UID=10001
 
@@ -22,7 +24,7 @@ WORKDIR /server
 
 COPY ./ .
 
-RUN cargo build --release
+RUN cargo build --target x86_64-unknown-linux-musl --release
 
 ####################################################################################################
 ## Final image
@@ -30,15 +32,9 @@ RUN cargo build --release
 FROM alpine:latest
 
 # Import from builder.
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
 
 WORKDIR /server
 
 # Copy our build
-COPY --from=builder /server/target/release ./
-
-# Use an unprivileged user.
-USER server:server
-
-CMD ["/server/server"]
+COPY --from=builder /server/target/x86_64-unknown-linux-musl/release ./release
+CMD ["./release/server"]
