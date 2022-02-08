@@ -8,4 +8,4 @@ pub const HTTP_STRING: &str = "https://ludo-be.herokuapp.com";
 pub const WS_STRING: &str =   "ws://127.0.0.1:8080";
 
 #[cfg(not(debug_assertions))]
-pub const WS_STRING: &str = "ws://ludo-be.herokuapp.com";
+pub const WS_STRING: &str = "wss://ludo-be.herokuapp.com";
