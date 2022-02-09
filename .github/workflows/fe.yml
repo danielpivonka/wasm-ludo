@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2    
       - name: Build Docker image
-        run: docker build -t registry.heroku.com/ludo-fe/web:latest ./server
+        run: docker build -t registry.heroku.com/ludo-fe/web:latest ./client
       - name: Docker image info
         run: docker images
       - name: Login to container registry
