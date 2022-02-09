@@ -1,25 +1,18 @@
 ####################################################################################################
 ## Build
 ####################################################################################################
-FROM rust:latest
+FROM rust:latest AS builder
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install trunk
-RUN update-ca-certificates
-ENV USER=server
-ENV UID=10001
 
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    "${USER}"
 
 WORKDIR /client
-
 COPY ./ .
-
-
-RUN trunk serve --release
+RUN trunk build --release
+####################################################################################################
+## Final image
+####################################################################################################
+FROM nginx:latest
+COPY /default.conf.template /etc/nginx/conf.d/default.conf.template
+COPY --from=builder /client/dist /usr/share/nginx/html
+CMD /bin/bash -c "envsubst '\$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf" && nginx -g 'daemon off;'
